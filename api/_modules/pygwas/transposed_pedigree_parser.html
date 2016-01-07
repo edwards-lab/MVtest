@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.transposed_pedigree_parser &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.transposed_pedigree_parser</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">data_parser</span> <span class="kn">import</span> <span class="n">DataParser</span>
+<span class="kn">from</span> <span class="nn">parsed_locus</span> <span class="kn">import</span> <span class="n">ParsedLocus</span>
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">TooManyAlleles</span>
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">TooFewAlleles</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<div class="viewcode-block" id="Parser"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser">[docs]</a><span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="n">DataParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse transposed pedigree dataset</span>
+
+<span class="sd">    Class Members:</span>
+<span class="sd">    tfam_file       filename associated with the pedigree information</span>
+<span class="sd">    tped_file       Filename associated with the genotype data</span>
+<span class="sd">    families        Pedigree information for reporting</span>
+<span class="sd">    genotype_file   Actual pedigree file begin parsed (file object)</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tfam</span><span class="p">,</span> <span class="n">tped</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tfam_file</span> <span class="o">=</span> <span class="n">tfam</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tped_file</span> <span class="o">=</span> <span class="n">tped</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">families</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span> <span class="o">=</span> <span class="n">tped</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Parser.ReportConfiguration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser.ReportConfiguration">[docs]</a>    <span class="k">def</span> <span class="nf">ReportConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;TPED FILE&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tped_file</span><span class="p">)</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;TFAM FILE&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tfam_file</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Parser.load_tfam"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser.load_tfam">[docs]</a>    <span class="k">def</span> <span class="nf">load_tfam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pheno_covar</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load the pedigree portion of the data and sort out exclusions&quot;&quot;&quot;</span>
+
+        <span class="n">pheno_col</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_sex</span><span class="p">:</span>
+            <span class="n">pheno_col</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_parents</span><span class="p">:</span>
+            <span class="n">pheno_col</span> <span class="o">-=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_fid</span><span class="p">:</span>
+            <span class="n">pheno_col</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="n">sex_col</span> <span class="o">=</span> <span class="n">pheno_col</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">mask_components</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfam_file</span><span class="p">):</span>
+            <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">indid</span> <span class="o">=</span> <span class="s">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">valid_indid</span><span class="p">(</span><span class="n">indid</span><span class="p">):</span>
+                    <span class="n">mask_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+                    <span class="n">sex</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">pheno</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_sex</span><span class="p">:</span>
+                        <span class="n">sex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">sex_col</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_pheno</span><span class="p">:</span>
+                        <span class="n">pheno</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">pheno_col</span><span class="p">])</span>
+                    <span class="n">pheno_covar</span><span class="o">.</span><span class="n">add_subject</span><span class="p">(</span><span class="n">indid</span><span class="p">,</span> <span class="n">sex</span><span class="p">,</span> <span class="n">pheno</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mask_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">mask_components</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask_components</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mask_components</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">[</span><span class="mi">0</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">[</span><span class="mi">0</span><span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pheno_covar</span><span class="o">.</span><span class="n">freeze_subjects</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Parser.load_genotypes"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser.load_genotypes">[docs]</a>    <span class="k">def</span> <span class="nf">load_genotypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This really just intializes the file by opening it up. &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">compressed_pedigree</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.gz&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">tped_file</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tped_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_missing</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Parser.process_genotypes"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser.process_genotypes">[docs]</a>    <span class="k">def</span> <span class="nf">process_genotypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse pedigree line and remove excluded individuals from geno</span>
+
+<span class="sd">        Translates alleles into numerical genotypes (0, 1, 2) counting</span>
+<span class="sd">        number of minor alleles.</span>
+
+<span class="sd">        Throws exceptions if an there are not 2 distinct alleles</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Get a list of uniq entries in the data, except for missing</span>
+        <span class="n">alleles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:])</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alleles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TooManyAlleles</span><span class="p">(</span><span class="nb">chr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="n">rsid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span> <span class="n">alleles</span><span class="o">=</span><span class="n">alleles</span><span class="p">)</span>
+
+        <span class="c"># We don&#39;t have a way to know this in advance, so we want to just iterate onward</span>
+        <span class="c"># if we encounter one of these</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alleles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TooFewAlleles</span><span class="p">(</span><span class="nb">chr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="n">rsid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span> <span class="n">alleles</span><span class="o">=</span><span class="n">alleles</span><span class="p">)</span>
+
+        <span class="c"># Strip out any excluded individuals</span>
+        <span class="n">allelic_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&quot;S2&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">maj_allele_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">allelic_data</span><span class="o">==</span><span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">min_allele_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">allelic_data</span><span class="o">==</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">effect_allele_count</span> <span class="o">=</span> <span class="n">min_allele_count</span>
+        <span class="k">if</span> <span class="n">min_allele_count</span> <span class="o">&gt;</span> <span class="n">maj_allele_count</span><span class="p">:</span>
+            <span class="n">alleles</span> <span class="o">=</span> <span class="p">[</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">allele_count</span> <span class="o">=</span> <span class="n">maj_allele_count</span>
+            <span class="n">maj_allele_count</span> <span class="o">=</span> <span class="n">min_allele_count</span>
+            <span class="n">min_allele_count</span> <span class="o">=</span> <span class="n">allele_count</span>
+
+        <span class="c">#genotypes = []</span>
+        <span class="n">major_allele</span>       <span class="o">=</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">minor_allele</span>       <span class="o">=</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c"># Genotypes represent the sum of minor alleles at each sample</span>
+        <span class="n">genotype_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">allelic_data</span><span class="o">==</span><span class="n">minor_allele</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">missing_alleles</span> <span class="o">=</span> <span class="n">allelic_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span>
+        <span class="n">genotype_data</span><span class="p">[</span><span class="n">missing_alleles</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">missing_storage</span>
+        <span class="n">hetero_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">genotype_data</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">genotype_data</span><span class="p">,</span>
+                <span class="n">major_allele</span><span class="p">,</span>
+                <span class="n">minor_allele</span><span class="p">,</span>
+                <span class="n">hetero_count</span><span class="p">,</span>
+                <span class="n">maj_allele_count</span><span class="p">,</span>
+                <span class="n">min_allele_count</span><span class="p">,</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">missing_alleles</span><span class="p">),</span>
+                <span class="n">effect_allele_count</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Parser.filter_missing"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser.filter_missing">[docs]</a>    <span class="k">def</span> <span class="nf">filter_missing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filter out individuals and SNPs that have too many missing to be considered&quot;&quot;&quot;</span>
+
+        <span class="n">missing</span>             <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">locus_count</span>         <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c"># Filter out individuals according to missingness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">genotypes</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span><span class="p">:</span>
+            <span class="n">genotypes</span> <span class="o">=</span> <span class="n">genotypes</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="nb">chr</span><span class="p">,</span> <span class="n">rsid</span><span class="p">,</span> <span class="n">junk</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">TestBoundary</span><span class="p">(</span><span class="nb">chr</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">rsid</span><span class="p">):</span>
+                <span class="n">locus_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">allelic_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">genotypes</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&quot;S2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">missing</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">missing</span>             <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">allelic_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;int8&#39;</span><span class="p">)</span>
+                <span class="n">missing</span> <span class="o">+=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="o">+</span><span class="p">(</span><span class="n">allelic_data</span><span class="o">==</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">max_missing</span> <span class="o">=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">ind_miss_tol</span> <span class="o">*</span> <span class="n">locus_count</span>
+        <span class="n">dropped_individuals</span> <span class="o">=</span> <span class="mi">0</span><span class="o">+</span><span class="p">(</span><span class="n">max_missing</span><span class="o">&lt;</span><span class="n">missing</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">|</span><span class="n">dropped_individuals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">|</span><span class="n">dropped_individuals</span>
+
+        <span class="n">valid_individuals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">max_missing</span> <span class="o">=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">snp_miss_tol</span> <span class="o">*</span> <span class="n">valid_individuals</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c"># We can&#39;t merge these two iterations since we need to know which individuals</span>
+        <span class="c"># to consider for filtering on MAF</span>
+        <span class="n">dropped_snps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">genotypes</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span><span class="p">:</span>
+            <span class="n">genotypes</span> <span class="o">=</span> <span class="n">genotypes</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="nb">chr</span><span class="p">,</span> <span class="n">rsid</span><span class="p">,</span> <span class="n">junk</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="nb">chr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">chr</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">TestBoundary</span><span class="p">(</span><span class="nb">chr</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">rsid</span><span class="p">):</span>
+                <span class="n">allelic_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">genotypes</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&quot;S2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+                <span class="n">missing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="o">+</span><span class="p">(</span><span class="n">allelic_data</span><span class="o">==</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">missing</span> <span class="o">&gt;</span> <span class="n">max_missing</span><span class="p">:</span>
+                    <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">dropped_snps</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">chr</span><span class="p">)]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+                    <span class="n">dropped_snps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rsid</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+</div>
+<div class="viewcode-block" id="Parser.populate_iteration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.transposed_pedigree_parser.Parser.populate_iteration">[docs]</a>    <span class="k">def</span> <span class="nf">populate_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pour the current data into the iteration object&quot;&quot;&quot;</span>
+
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">iteration</span><span class="o">.</span><span class="n">cur_idx</span>
+        <span class="n">genotypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">iteration</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span> <span class="n">junk</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">iteration</span><span class="o">.</span><span class="n">chr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">chr</span><span class="p">)</span>
+        <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">TestBoundary</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">rsid</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="p">[</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">hetero_count</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">maj_allele_count</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">min_allele_count</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">missing_allele_count</span><span class="p">,</span>
+                    <span class="n">iteration</span><span class="o">.</span><span class="n">allele_count2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_genotypes</span><span class="p">(</span><span class="n">genotypes</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">iteration</span><span class="o">.</span><span class="n">maf</span> <span class="o">&gt;=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">min_maf</span> <span class="ow">and</span> <span class="n">iteration</span><span class="o">.</span><span class="n">maf</span> <span class="o">&lt;=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">max_maf</span>
+            <span class="k">except</span> <span class="n">TooFewAlleles</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;</span><span class="se">\n\n\n</span><span class="s">Skipping </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span> <span class="n">cur_idx</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">False</span>
+
+
+</div>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the file and begin iteration&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotype_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ParsedLocus</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

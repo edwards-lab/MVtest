@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.data_parser &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.data_parser</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">parsed_locus</span> <span class="kn">import</span> <span class="n">ParsedLocus</span>
+<span class="kn">from</span> <span class="nn">locus</span> <span class="kn">import</span> <span class="n">Locus</span>
+
+<span class="kn">from</span> <span class="nn">boundary</span> <span class="kn">import</span> <span class="n">BoundaryCheck</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="k">def</span> <span class="nf">check_inclusions</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">included</span><span class="o">=</span><span class="p">[],</span> <span class="n">excluded</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;Everything passes if both are empty, otherwise, we have to check if empty or is present.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="check_inclusions"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.data_parser.check_inclusions">[docs]</a>    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">included</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">excluded</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">included</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+
+<span class="k">class</span> <span class="nc">DataParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract representation of all dataset parsers</span></div>
+<div class="viewcode-block" id="DataParser"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.data_parser.DataParser">[docs]</a>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#: this can be used to filter out loci with too few minor alleles</span>
+    <span class="n">min_maf</span>         <span class="o">=</span> <span class="mf">0.00</span>
+
+    <span class="c">#: filter out if a minor allele frequency exceeds this value</span>
+    <span class="n">max_maf</span>         <span class="o">=</span> <span class="mf">1.00</span>
+
+    <span class="c">#: Filter SNPs with too many missing</span>
+    <span class="n">snp_miss_tol</span>    <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c">#: Filter individuals with too many missing</span>
+    <span class="n">ind_miss_tol</span>    <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c">#: Boundary object specifying valid region for analysis</span>
+    <span class="n">boundary</span>        <span class="o">=</span> <span class="n">BoundaryCheck</span><span class="p">()</span>
+
+    <span class="c">#: Filter out specific individuals by individual ID</span>
+    <span class="n">ind_exclusions</span>  <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#: Filter in specific individuals by individual ID</span>
+    <span class="n">ind_inclusions</span>  <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#: When false, pedigree header expects no sex column</span>
+    <span class="n">has_sex</span>         <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c">#: When false, pedigree header expects no parents columns</span>
+    <span class="n">has_parents</span>     <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c">#: When false, pedigree header expects no family id column</span>
+    <span class="n">has_fid</span>         <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c">#: When false, pedigree header expects no phenotype column</span>
+    <span class="n">has_pheno</span>       <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c">#: When false, pedigree header expects no liability column</span>
+    <span class="n">has_liability</span>   <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c">#: External representation of missingness</span>
+    <span class="n">missing_representation</span>      <span class="o">=</span> <span class="s">&#39;0&#39;</span>
+
+    <span class="c"># Internal representation of missingness</span>
+    <span class="n">missing_storage</span>             <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="c">#: When true, assume that standard pedigree and transposed pedigree are</span>
+    <span class="c">#: compressed with gzip</span>
+    <span class="n">compressed_pedigree</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">get_effa_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genotypes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">genotypes</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">genotypes</span><span class="p">)</span>
+<div class="viewcode-block" id="DataParser.get_effa_freq"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.data_parser.DataParser.get_effa_freq">[docs]</a>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Iteration is performed by ParsedLocus&quot;&quot;&quot;</span></div>
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">beyond_upper_bound</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+        <span class="k">return</span> <span class="n">ParsedLocus</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">valid_indid</span><span class="p">(</span><span class="n">indid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">check_inclusions</span><span class="p">(</span><span class="n">indid</span><span class="p">,</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">ind_inclusions</span><span class="p">,</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">ind_exclusions</span><span class="p">)</span>
+<div class="viewcode-block" id="DataParser.valid_indid"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.data_parser.DataParser.valid_indid">[docs]</a>
+
+    <span class="k">def</span> <span class="nf">get_loci</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">loci</span> <span class="o">=</span> <span class="p">[]</span></div>
+<div class="viewcode-block" id="DataParser.get_loci"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.data_parser.DataParser.get_loci">[docs]</a>        <span class="k">for</span> <span class="n">locus</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">loci</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Locus</span><span class="p">(</span><span class="n">locus</span><span class="p">))</span>
+
+            <span class="n">locus</span><span class="o">.</span><span class="n">genotype_data</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">return</span> <span class="n">loci</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

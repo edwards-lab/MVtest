@@ -1,0 +1,403 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>meanvar package &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="MVtest API Libraries" href="../modules.html" />
+    <link rel="next" title="pygwas package" href="pygwas.html" />
+    <link rel="prev" title="MVtest API Libraries" href="../modules.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="meanvar-package">
+<h1>meanvar package<a class="headerlink" href="#meanvar-package" title="Permalink to this headline">¶</a></h1>
+<p>The meanvar library provides the base functionality for the MVtest method. It
+depends on PyGWAS functionality.</p>
+<div class="section" id="module-meanvar.mv_esteq">
+<span id="meanvar-mv-esteq-module"></span><h2>meanvar.mv_esteq module<a class="headerlink" href="#module-meanvar.mv_esteq" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="meanvar.mv_esteq.MeanVarEstEQ">
+<code class="descclassname">meanvar.mv_esteq.</code><code class="descname">MeanVarEstEQ</code><span class="sig-paren">(</span><em>y</em>, <em>x</em>, <em>covariates</em>, <em>tol=1e-08</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mv_esteq.html#MeanVarEstEQ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mv_esteq.MeanVarEstEQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the mean var calculation using estimated equestions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>y</strong> &#8211; Outcomes</li>
+<li><strong>x</strong> &#8211; [genotypes, cov1, ..., covN]</li>
+<li><strong>tol</strong> &#8211; convergence criterion</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="meanvar.mv_esteq.RunAnalysis">
+<code class="descclassname">meanvar.mv_esteq.</code><code class="descname">RunAnalysis</code><span class="sig-paren">(</span><em>dataset</em>, <em>pheno_covar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mv_esteq.html#RunAnalysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mv_esteq.RunAnalysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the actual analysis on all valid loci for each phenotype</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dataset</strong> &#8211; GWAS parser object</li>
+<li><strong>pheno_covar</strong> &#8211; holds all of the variables</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This acts as a standard iterator, returning a single MVResult for
+each locus/phenotype combination.</p>
+<p>Missing is evaluated as anything missing in any of the
+phenotype, covariate(s) or genotype</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="meanvar.mv_esteq.RunMeanVar">
+<code class="descclassname">meanvar.mv_esteq.</code><code class="descname">RunMeanVar</code><span class="sig-paren">(</span><em>pheno</em>, <em>geno</em>, <em>covar=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mv_esteq.html#RunMeanVar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mv_esteq.RunMeanVar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup and execute the mean var calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pheno</strong> &#8211; Phenotype data (one phenotype at a time)</li>
+<li><strong>geno</strong> &#8211; SNP data (might be genotypes, or dosages, etc)</li>
+<li><strong>covar</strong> &#8211; List of covariate data</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>It is possible that the optimization will fail to converge. Such
+cases are stripped of data, but are still reported to alert the
+user that there were problems with the data.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-meanvar.mvresult">
+<span id="meanvar-mvresult-module"></span><h2>meanvar.mvresult module<a class="headerlink" href="#module-meanvar.mvresult" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="meanvar.mvresult.MVResult">
+<em class="property">class </em><code class="descclassname">meanvar.mvresult.</code><code class="descname">MVResult</code><span class="sig-paren">(</span><em>chr</em>, <em>pos</em>, <em>rsid</em>, <em>maj</em>, <em>min</em>, <em>eff_alcount</em>, <em>non_miss_count</em>, <em>p_mvtest</em>, <em>ph_label</em>, <em>beta_values</em>, <em>pvalues</em>, <em>stderrors</em>, <em>maf</em>, <em>covar_labels=[]</em>, <em>lm=-1</em>, <em>runtime=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvresult.html#MVResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvresult.MVResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Result associated with a single locus/phenotype execution</p>
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.beta_pvalues">
+<code class="descname">beta_pvalues</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.beta_pvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of beta pvalues</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.beta_stderr">
+<code class="descname">beta_stderr</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.beta_stderr" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of std errors</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.betas">
+<code class="descname">betas</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.betas" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of beta values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.chr">
+<code class="descname">chr</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.chr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chromosome</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.covar_labels">
+<code class="descname">covar_labels</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.covar_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Covariate labels used for analysis</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.eff_alcount">
+<code class="descname">eff_alcount</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.eff_alcount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total count of effect alleles</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.lmpv">
+<code class="descname">lmpv</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.lmpv" title="Permalink to this definition">¶</a></dt>
+<dd><p>LM</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.maf">
+<code class="descname">maf</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>minor allele frequency</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.maj_allele">
+<code class="descname">maj_allele</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.maj_allele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Major allele (A,C,G,T, etc)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.min_allele">
+<code class="descname">min_allele</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.min_allele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minor allele</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.non_miss">
+<code class="descname">non_miss</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.non_miss" title="Permalink to this definition">¶</a></dt>
+<dd><p>non missing count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.p_mvtest">
+<code class="descname">p_mvtest</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.p_mvtest" title="Permalink to this definition">¶</a></dt>
+<dd><p>mvtest&#8217;s pvalue</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.p_variance">
+<code class="descname">p_variance</code><a class="headerlink" href="#meanvar.mvresult.MVResult.p_variance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.ph_label">
+<code class="descname">ph_label</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.ph_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>current phenotype label</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.pos">
+<code class="descname">pos</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>BP position</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.mvresult.MVResult.print_header">
+<code class="descname">print_header</code><span class="sig-paren">(</span><em>f=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w'&gt;</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvresult.html#MVResult.print_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvresult.MVResult.print_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints header to f (will write header based on verbose)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> &#8211; stream to print output</li>
+<li><strong>verbose</strong> &#8211; print all data or only the most important parts?</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.mvresult.MVResult.print_result">
+<code class="descname">print_result</code><span class="sig-paren">(</span><em>f=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w'&gt;</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvresult.html#MVResult.print_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvresult.MVResult.print_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print result to f</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> &#8211; stream to print output</li>
+<li><strong>verbose</strong> &#8211; print all data or only the most important parts?</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.rsid">
+<code class="descname">rsid</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.rsid" title="Permalink to this definition">¶</a></dt>
+<dd><p>RSID</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="meanvar.mvresult.MVResult.runtime">
+<code class="descname">runtime</code><em class="property"> = None</em><a class="headerlink" href="#meanvar.mvresult.MVResult.runtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>number of seconds analysis took to complete</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.mvresult.MVResult.stringify">
+<code class="descname">stringify</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvresult.html#MVResult.stringify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvresult.MVResult.stringify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-meanvar.mvstandardizer">
+<span id="meanvar-mvstandardizer-module"></span><h2>meanvar.mvstandardizer module<a class="headerlink" href="#module-meanvar.mvstandardizer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="meanvar.mvstandardizer.Standardizer">
+<em class="property">class </em><code class="descclassname">meanvar.mvstandardizer.</code><code class="descname">Standardizer</code><span class="sig-paren">(</span><em>pc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvstandardizer.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvstandardizer.Standardizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pygwas.html#pygwas.standardizer.StandardizedVariable" title="pygwas.standardizer.StandardizedVariable"><code class="xref py py-class docutils literal"><span class="pre">pygwas.standardizer.StandardizedVariable</span></code></a></p>
+<p>Optional plugin object that can be used to standardize covariate and
+phenotype data.</p>
+<p>Many algorithms require that input be standardized in some way in order
+to work properly, however, rescaling the results is algorithm specific.
+In order to facilitate this situation, application authors can
+write up application specific Standardization objects for use with
+the data parsers.</p>
+<dl class="method">
+<dt id="meanvar.mvstandardizer.Standardizer.destandardize">
+<code class="descname">destandardize</code><span class="sig-paren">(</span><em>estimates</em>, <em>se</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvstandardizer.html#Standardizer.destandardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvstandardizer.Standardizer.destandardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revert the betas and variance components back to the original scale.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.mvstandardizer.Standardizer.standardize">
+<code class="descname">standardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/mvstandardizer.html#Standardizer.standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.mvstandardizer.Standardizer.standardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standardize the variables within a range [-1.0 and 1.0]</p>
+<p>This replaces the local copies of this data. When it&#8217;s time to
+scale back, use destandardize from the datasource for that.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-meanvar.simple_timer">
+<span id="meanvar-simple-timer-module"></span><h2>meanvar.simple_timer module<a class="headerlink" href="#module-meanvar.simple_timer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="meanvar.simple_timer.SimpleTimer">
+<em class="property">class </em><code class="descclassname">meanvar.simple_timer.</code><code class="descname">SimpleTimer</code><a class="reference internal" href="../_modules/meanvar/simple_timer.html#SimpleTimer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.simple_timer.SimpleTimer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple abstraction to allow for basic timing.</p>
+<dl class="method">
+<dt id="meanvar.simple_timer.SimpleTimer.report">
+<code class="descname">report</code><span class="sig-paren">(</span><em>msg</em>, <em>do_reset=False</em>, <em>file=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/simple_timer.html#SimpleTimer.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.simple_timer.SimpleTimer.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print to stdout msg followed by the runtime.</p>
+<p>When true, do_reset will result in a reset of start time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.simple_timer.SimpleTimer.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/simple_timer.html#SimpleTimer.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.simple_timer.SimpleTimer.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset start time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.simple_timer.SimpleTimer.result">
+<code class="descname">result</code><span class="sig-paren">(</span><em>msg</em>, <em>do_reset=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/simple_timer.html#SimpleTimer.result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.simple_timer.SimpleTimer.result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return log message containing ellapsed time as a string.</p>
+<p>When true, do_reset will result in a reset of start time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meanvar.simple_timer.SimpleTimer.runtime">
+<code class="descname">runtime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/meanvar/simple_timer.html#SimpleTimer.runtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meanvar.simple_timer.SimpleTimer.runtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return ellapsed time and reset start.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-meanvar">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-meanvar" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">meanvar package</a><ul>
+<li><a class="reference internal" href="#module-meanvar.mv_esteq">meanvar.mv_esteq module</a></li>
+<li><a class="reference internal" href="#module-meanvar.mvresult">meanvar.mvresult module</a></li>
+<li><a class="reference internal" href="#module-meanvar.mvstandardizer">meanvar.mvstandardizer module</a></li>
+<li><a class="reference internal" href="#module-meanvar.simple_timer">meanvar.simple_timer module</a></li>
+<li><a class="reference internal" href="#module-meanvar">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">MVtest API Libraries</a><ul>
+      <li>Previous: <a href="../modules.html" title="previous chapter">MVtest API Libraries</a></li>
+      <li>Next: <a href="pygwas.html" title="next chapter">pygwas package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/meanvar.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="../_sources/modules/meanvar.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.standardizer &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.standardizer</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pheno_covar</span>
+
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">InvariantVar</span>
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="k">def</span> <span class="nf">get_standardizer</span><span class="p">():</span>
+<div class="viewcode-block" id="get_standardizer"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.get_standardizer">[docs]</a>    <span class="k">global</span> <span class="n">_standardizer</span>
+    <span class="k">return</span> <span class="n">_standardizer</span>
+<span class="k">def</span> <span class="nf">set_standardizer</span><span class="p">(</span><span class="n">std</span><span class="p">):</span></div>
+<div class="viewcode-block" id="set_standardizer"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.set_standardizer">[docs]</a>    <span class="k">global</span> <span class="n">_standardizer</span>
+    <span class="n">_standardizer</span> <span class="o">=</span> <span class="n">std</span>
+
+<span class="k">class</span> <span class="nc">StandardizedVariable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></div>
+<div class="viewcode-block" id="StandardizedVariable"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable">[docs]</a>    <span class="sd">&quot;&quot;&quot;Optional plugin object that can be used to standardize covariate and</span>
+<span class="sd">       phenotype data.</span>
+
+<span class="sd">       Many algorithms require that input be standardized in some way in order</span>
+<span class="sd">       to work properly, however, rescaling the results is algorithm specific.</span>
+<span class="sd">       In order to facilitate this situation, application authors can</span>
+<span class="sd">       write up application specific Standardization objects for use with</span>
+<span class="sd">       the data parsers.</span>
+
+<span class="sd">       &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pc</span><span class="p">):</span>
+        <span class="c">#: mask representing missingness (1 indicates missing)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#: number of covars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pc</span><span class="o">.</span><span class="n">covariate_data</span><span class="p">)</span>
+        <span class="c">#: number of phenotypes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pheno_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pc</span><span class="o">.</span><span class="n">phenotype_data</span><span class="p">)</span>
+        <span class="c">#: Standardized covariate data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariates</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: standardized phenotype data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">pheno</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">phenotype_data</span><span class="p">:</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="n">pheno</span> <span class="o">==</span> <span class="n">pheno_covar</span><span class="o">.</span><span class="n">PhenoCovar</span><span class="o">.</span><span class="n">missing_encoding</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">covar_count</span><span class="p">):</span>
+                <span class="n">missing</span> <span class="o">=</span> <span class="n">missing</span> <span class="o">|</span> <span class="p">(</span><span class="n">pc</span><span class="o">.</span><span class="n">covariate_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">pheno_covar</span><span class="o">.</span><span class="n">PhenoCovar</span><span class="o">.</span><span class="n">missing_encoding</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
+        <span class="c">#: index of the current phenotype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c">#: Reference back to the pheno_covar object for access to raw data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="n">pc</span>
+
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_in_geno</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardizedVariable.get_variables"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable.get_variables">[docs]</a>        <span class="sd">&quot;&quot;&quot;Extract the complete set of data based on missingness over all</span>
+<span class="sd">        for the current locus.</span>
+
+<span class="sd">        :param missing_in_geno: mask associated with missingness in genotype</span>
+<span class="sd">        :return: (phenotypes, covariates, nonmissing used for this set of vars)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mismatch</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">missing_in_geno</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">nonmissing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">missing</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nonmissing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">missing</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span> <span class="o">|</span> <span class="n">missing_in_geno</span><span class="p">)</span>
+        <span class="n">nmcount</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nonmissing</span><span class="p">)</span>
+        <span class="n">covars</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">covar_count</span><span class="p">,</span> <span class="n">nmcount</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">covar_count</span><span class="p">):</span>
+            <span class="n">covars</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariates</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">nonmissing</span><span class="p">]</span>
+            <span class="nb">min</span> <span class="o">=</span> <span class="n">covars</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">covars</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pheno_covar</span><span class="o">.</span><span class="n">PhenoCovar</span><span class="o">.</span><span class="n">missing_encoding</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="nb">max</span> <span class="o">=</span> <span class="n">covars</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">covars</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pheno_covar</span><span class="o">.</span><span class="n">PhenoCovar</span><span class="o">.</span><span class="n">missing_encoding</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">min</span> <span class="o">==</span> <span class="nb">max</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvariantVar</span><span class="p">(</span><span class="s">&quot;Covar </span><span class="si">%s</span><span class="s"> doesn&#39;t have enough variation to continue&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">covariate_labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span>
+        <span class="nb">min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phenotypes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">][</span><span class="n">nonmissing</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="nb">max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phenotypes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">][</span><span class="n">nonmissing</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">min</span> <span class="o">==</span> <span class="nb">max</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvariantVar</span><span class="p">(</span><span class="s">&quot;Phenotype </span><span class="si">%s</span><span class="s"> doesn&#39;t have enough variation to continue&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">phenotype_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phenotypes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">][</span><span class="n">nonmissing</span><span class="p">],</span> <span class="n">covars</span><span class="p">,</span> <span class="n">nonmissing</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_phenotype_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="StandardizedVariable.get_phenotype_name"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable.get_phenotype_name">[docs]</a>        <span class="sd">&quot;&quot;&quot;Returns current phenotype name&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">phenotype_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_covariate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span></div>
+<div class="viewcode-block" id="StandardizedVariable.get_covariate_name"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable.get_covariate_name">[docs]</a>        <span class="sd">&quot;&quot;&quot;Return label for a specific covariate</span>
+
+<span class="sd">        :param idx: which covariate?</span>
+<span class="sd">        :return: string label</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">covariate_labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_covariate_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="StandardizedVariable.get_covariate_names"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable.get_covariate_names">[docs]</a>        <span class="sd">&quot;&quot;&quot;Return all covariate labels as a list</span>
+
+<span class="sd">        :return: list of covariate names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">covariate_labels</span>
+
+    <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="StandardizedVariable.standardize"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable.standardize">[docs]</a>        <span class="sd">&quot;&quot;&quot;Stub for the appropriate standardizer function</span>
+
+<span class="sd">        Each Standardizer object will do it&#39;s own thing here.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">destandardize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="StandardizedVariable.destandardize"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.StandardizedVariable.destandardize">[docs]</a>        <span class="sd">&quot;&quot;&quot;Stub for the appropriate destandardizer function.</span>
+
+<span class="sd">        Each object type will do it&#39;s own thing here.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">NoStandardization</span><span class="p">(</span><span class="n">StandardizedVariable</span><span class="p">):</span></div></div>
+<div class="viewcode-block" id="NoStandardization"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.NoStandardization">[docs]</a>    <span class="sd">&quot;&quot;&quot;This is mostly a placeholder for standardizers. Each application will</span>
+<span class="sd">    probably have a specific approach to standardizing/destandardizing the</span>
+<span class="sd">    input/output.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pc</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NoStandardization</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NoStandardization.standardize"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.NoStandardization.standardize">[docs]</a>        <span class="sd">&quot;&quot;&quot;Standardize the variables within a range [-1.0 and 1.0]</span>
+
+<span class="sd">        This replaces the local copies of this data. When it&#39;s time to</span>
+<span class="sd">        scale back, use destandardize from the datasource for that.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">covariate_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">phenotype_data</span>
+
+    <span class="k">def</span> <span class="nf">destandardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimates</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+<div class="viewcode-block" id="NoStandardization.destandardize"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.standardizer.NoStandardization.destandardize">[docs]</a>        <span class="sd">&quot;&quot;&quot;When the pheno/covar data has been standardized, this can be</span>
+<span class="sd">        used to rescale the betas back to a meaningful value using the</span>
+<span class="sd">        original data.</span>
+
+<span class="sd">        For the &quot;Un-standardized&quot; data, we do no conversion.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">estimates</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;pvalues&quot;</span><span class="p">]</span>
+
+<span class="c">#: This should be set to an appropriate object by the application</span>
+<span class="n">_standardizer</span> <span class="o">=</span> <span class="n">NoStandardization</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

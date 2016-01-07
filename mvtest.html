@@ -1,0 +1,678 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>What is MVtest? &mdash; MVtest 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtest 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="mvmany Helper script" href="mvmany.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="what-is-mvtest">
+<h1>What is MVtest?<a class="headerlink" href="#what-is-mvtest" title="Permalink to this headline">¶</a></h1>
+<p><em>TODO: Write some background information about the application and it&#8217;s
+scientific basis.</em></p>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>Documentation for MVtest is still under construction. However, the application
+provides reasonable inline help using standard unix help arguments:</p>
+<p>&gt; <cite>mvtest.py -h</cite></p>
+<p>or</p>
+<p>&gt; <cite>mvtest.py &#8211;help</cite></p>
+<p>In general, overlapping functionality should mimic that of PLINK.</p>
+</div>
+<div class="section" id="command-line-arguments">
+<h2>Command-Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permalink to this headline">¶</a></h2>
+<p>Command line arguments used by MVtest often mimick those used by PLINK, except
+where there is no matching functionality (or the functionality differs
+significantly.)</p>
+<p>For the parameters listed below, when a parameter requires a value, the value
+must follow the argument with a single space separating the two (no &#8216;=&#8217; signs.)
+For flags with no specified value, passing the flag indicates that condition
+is to be &#8220;activated&#8221;.</p>
+<p>When there is no value listed in the &#8220;Type&#8221; column, the arguments are <em>off</em> by
+default and <em>on</em> when the argument is present (i.e. by default, compression
+is turned off except when the flag, &#8211;compression, has been provided.)</p>
+<div class="section" id="getting-help">
+<h3>Getting help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption-h">
+<span id="cmdoption--help"></span><code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show this help message and exit.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-v">
+<code class="descname">-v</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print version number</p>
+</dd></dl>
+
+</div>
+<div class="section" id="input-data">
+<h3>Input Data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h3>
+<p>MVtest attempts to mimic the interface for PLINK where appropriate.</p>
+<p>All input files should be whitespace delimited. For text based allelic
+annotations, 1|2 and A|C|G|T annotation is sufficient. All data must be
+expressed as alleles, not as genotypes (except for IMPUTE output, which is a
+specialized format that is very different from the other forms).</p>
+<p>For Pedigree, Transposed Pedigree and PLINK binary pedigree files, the using
+the PREFIX arguments is sufficient and recommended if your files follow the
+standard naming conventions.</p>
+<div class="section" id="pedigree-data">
+<h4>Pedigree Data<a class="headerlink" href="#pedigree-data" title="Permalink to this headline">¶</a></h4>
+<p>Pedigree data is fully supported, however it is not recommended. When loading
+pedigree data, MVtest must load the entire dataset into memory prior to
+analysis, which can result in a substantial amount of memory overhead that is
+unnecessary.</p>
+<p>Flags like &#8211;no-pheno and &#8211;no-sex can be used in any combination creating
+MAP files with highly flexible header structures.</p>
+<dl class="option">
+<dt id="cmdoption--file">
+<code class="descname">--file</code><code class="descclassname"> &lt;prefix&gt;</code><a class="headerlink" href="#cmdoption--file" title="Permalink to this definition">¶</a></dt>
+<dd><p>(filename prefix)
+Prefix for .ped and .map files</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--ped">
+<code class="descname">--ped</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--ped" title="Permalink to this definition">¶</a></dt>
+<dd><p>PLINK compatible .ped file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--map">
+<code class="descname">--map</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--map" title="Permalink to this definition">¶</a></dt>
+<dd><p>PLink compatible .map file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--map3">
+<code class="descname">--map3</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--map3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map file has only 3 columns</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--no-sex">
+<code class="descname">--no-sex</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--no-sex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedigree file doesn&#8217;t have column 5 (sex)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--no-parents">
+<code class="descname">--no-parents</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--no-parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedigree file doesn&#8217;t have columns 3 and 4 (parents)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--no-fid">
+<code class="descname">--no-fid</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--no-fid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedgiree file doesn&#8217;t have column 1 (family ID)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--no-pheno">
+<code class="descname">--no-pheno</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--no-pheno" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedigree file doesn&#8217;t have column 6 (phenotype)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--liability">
+<code class="descname">--liability</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--liability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedigree file has column 7 (liability)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="plink-binary-pedigree">
+<h4>PLINK Binary Pedigree<a class="headerlink" href="#plink-binary-pedigree" title="Permalink to this headline">¶</a></h4>
+<p>This format represents the most efficient storage for large GWAS datasets,
+and can be used directly by MVtest. In addition to a minimal overhead, plink
+style bed files will also run very quickly, due to the efficient disk layout.</p>
+<dl class="option">
+<dt id="cmdoption--bfile">
+<code class="descname">--bfile</code><code class="descclassname"> &lt;prefix&gt;</code><a class="headerlink" href="#cmdoption--bfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>(filename prefix)
+&lt;prefix&gt; for .bed, .bim and .fam files</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--bed">
+<code class="descname">--bed</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--bed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binary Ped file(.bed)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--bim">
+<code class="descname">--bim</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--bim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binary Ped marker file (.bim)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--fam">
+<code class="descname">--fam</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--fam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binary Ped family file (.fam)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="transposed-pedigree-data">
+<h4>Transposed Pedigree Data<a class="headerlink" href="#transposed-pedigree-data" title="Permalink to this headline">¶</a></h4>
+<p>Transposed Pedigree data is similar to standard pedigree except that the data
+is arranged such that the data is organized as SNPs as rows, instead of
+individuals. This allows MVtest to run it&#8217;s analysis without loading the
+entire dataset into memory.</p>
+<dl class="option">
+<dt id="cmdoption--tfile">
+<code class="descname">--tfile</code><code class="descclassname"> &lt;prefix&gt;</code><a class="headerlink" href="#cmdoption--tfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix for .tped and .tfam files</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--tped">
+<code class="descname">--tped</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--tped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transposed Pedigre file (.tped)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--tfam">
+<code class="descname">--tfam</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--tfam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transposed Pedigree Family file (.tfam)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="pedigree-transposed-pedigree-common-flags">
+<h4>Pedigree/Transposed Pedigree Common Flags<a class="headerlink" href="#pedigree-transposed-pedigree-common-flags" title="Permalink to this headline">¶</a></h4>
+<p>By default, Pedigree and Transposed Pedigree data is assumed to be uncompressed.
+However, MVtest can directly use gzipped data files if they have the extension
+.tgz with the addition of the &#8211;compressed argument.</p>
+<dl class="option">
+<dt id="cmdoption--compressed">
+<code class="descname">--compressed</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--compressed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that ped/tped files have been compressed with gzip and are named
+with extensions such as .ped.tgz and .tped.tgz</p>
+</dd></dl>
+
+</div>
+<div class="section" id="impute-output">
+<h4>IMPUTE output<a class="headerlink" href="#impute-output" title="Permalink to this headline">¶</a></h4>
+<p>MVtest doesn&#8217;t call genotypes when performing analysis and allows users to
+define which model to use when analyzing the data. Due to the fact that there
+is no specific location for chromosome within the input files, MVtest requires
+that users provide chromosome, impute input file and the corresponding .info
+file for each imputed output.</p>
+<p>Due to the huge number of expected loci, MVtest allows users to specify an
+offset and file count for analysis. This is to allow users to run multiple
+jobs simultaneously on a cluster and work individually on separate impute
+region files. Users can segment those regions even further using standard
+MVtest region selection as well.</p>
+<p>By default, all imputed data is assumed to be compressed using gzip.</p>
+<p>Default naming convention is for impute data files to end in .gen.gz and
+the info files to have the same name except for the end being replaced
+by .info.</p>
+<dl class="option">
+<dt id="cmdoption--impute">
+<code class="descname">--impute</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--impute" title="Permalink to this definition">¶</a></dt>
+<dd><p>File containing list of impute output for analysis</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-fam">
+<code class="descname">--impute-fam</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--impute-fam" title="Permalink to this definition">¶</a></dt>
+<dd><p>File containing family details for impute data</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-offset">
+<code class="descname">--impute-offset</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--impute-offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Impute file index (1 based) to begin analysis</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-count">
+<code class="descname">--impute-count</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--impute-count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of impute files to process (for this node). Defaults to all remaining.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-uncompressed">
+<code class="descname">--impute-uncompressed</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--impute-uncompressed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that the impute input is not gzipped, but plain text</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-encoding">
+<code class="descname">--impute-encoding</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--impute-encoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>(additive,dominant or recessive)</p>
+<p>Genetic model to be used when analyzing imputed data.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-info-ext">
+<code class="descname">--impute-info-ext</code><code class="descclassname"> &lt;extension&gt;</code><a class="headerlink" href="#cmdoption--impute-info-ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Portion of filename denotes info filename</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-gen-ext">
+<code class="descname">--impute-gen-ext</code><code class="descclassname"> &lt;extension&gt;</code><a class="headerlink" href="#cmdoption--impute-gen-ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Portion of filename that denotes gen file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--impute-info-thresh">
+<code class="descname">--impute-info-thresh</code><code class="descclassname"> &lt;float&gt;</code><a class="headerlink" href="#cmdoption--impute-info-thresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Threshold for filtering imputed SNPs with poor &#8216;info&#8217; values</p>
+</dd></dl>
+
+</div>
+<div class="section" id="impute-file-input">
+<h4>IMPUTE File Input<a class="headerlink" href="#impute-file-input" title="Permalink to this headline">¶</a></h4>
+<p>When performing an analysis on IMPUTE output, users must provide a single file
+which lists each of the gen files to be analyzed. This plain text file contains
+2 (or optionally 3) columns for each gen file:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="23%" />
+<col width="52%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Chromosome</strong></th>
+<th class="head"><strong>Gen File</strong></th>
+<th class="head"><strong>.info &lt;filename&gt; (optional)</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>N</td>
+<td>&lt;filename&gt;</td>
+<td>&lt;filename&gt;</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+<p>The 3rd column is only required if your .info files and .gen files are not
+the same except for the &lt;extension&gt;.</p>
+</div>
+<div class="section" id="mach-output">
+<h4>MACH output<a class="headerlink" href="#mach-output" title="Permalink to this headline">¶</a></h4>
+<p>Users can analyze data imputed with MACH. Because most situations require
+many files, the format is a single file which contains either pairs of
+dosage/info files, or, if the two files share the same filename except for
+extensions, one dosage file per line.</p>
+<p>There is one caveat when using MACH output for analysis: MV-Test requires
+Chromosome and Position for consistency in reporting. As such, the IDs inside
+.info files must be of the form: chrom:pos</p>
+<p>If RSIDs or solely positions are found, MVtest will exit with an error.</p>
+<p>When running MVtest using MACH dosage on a cluster, users can instruct a given
+job to anlyze data from a portion of the files contained within the MACH
+dosage file list by changing the &#8211;mach-offset and &#8211;mach-count arguments. By
+default, the offset starts with 1 (the first file in the dosage list) and runs
+all it finds. However, if one were to want to split the jobs up to analyze
+three dosage files per job, they might set those values to &#8211;mach-offset 1
+&#8211;mach-count 3 or &#8211;mach-offset 4 &#8211;mach-count 3 depending on which job
+is being defined.</p>
+<p>In order to minimize memory requirements, MACH dosage files can be loaded
+incrementally such that only N loci are stored in memory at a time. This can
+be controlled using the &#8211;mach-chunk-size argument. The larger this number is,
+the faster MVtest will run (fewer times reading from file) but the more
+memory is required.</p>
+<dl class="option">
+<dt id="cmdoption--mach">
+<code class="descname">--mach</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--mach" title="Permalink to this definition">¶</a></dt>
+<dd><p>File containing list of dosages, one per line. Optionally, lines may
+contain the info names as well (separated by whitespace) if the two
+&lt;filename&gt;s do not share a common base name.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-offset">
+<code class="descname">--mach-offset</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--mach-offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index into the MACH file to begin analyzing</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-count">
+<code class="descname">--mach-count</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--mach-count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dosage files to analyze</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-uncompressed">
+<code class="descname">--mach-uncompressed</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--mach-uncompressed" title="Permalink to this definition">¶</a></dt>
+<dd><p>By default, MACH input is expected to be gzip compressed. If data is plain
+text, add this flag</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-chunk-size">
+<code class="descname">--mach-chunk-size</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--mach-chunk-size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Due to the individual orientation of the data, large dosage files are parsed
+in chunks in order to minimize excessive memory during loading</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-info-ext">
+<code class="descname">--mach-info-ext</code><code class="descclassname"> &lt;extension&gt;</code><a class="headerlink" href="#cmdoption--mach-info-ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate the &lt;extension&gt; used by the mach info files</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-dose-ext">
+<code class="descname">--mach-dose-ext</code><code class="descclassname"> &lt;extension&gt;</code><a class="headerlink" href="#cmdoption--mach-dose-ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate the &lt;extension&gt; used by the mach dosage files</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-min-rsquared">
+<code class="descname">--mach-min-rsquared</code><code class="descclassname"> &lt;float&gt;</code><a class="headerlink" href="#cmdoption--mach-min-rsquared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate the minimum threshold for the rsqured value from the .info files
+required for analysis.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="mach-file-input">
+<h4>MACH File Input<a class="headerlink" href="#mach-file-input" title="Permalink to this headline">¶</a></h4>
+<p>When running an analysis on MACH output, users must provide a single file which
+lists of each dosage file and (optionally) the matching .info file. This file
+is a simple text file with either 1 column (the dosage filename) or 2 (dosage
+filename followed by the info filename separated by whitespace).</p>
+<p>The 2nd column is only required if the filenames aren&#8217;t identical except for
+the extension.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="44%" />
+<col width="56%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Col 1 (dosage &lt;filename&gt;)</strong></th>
+<th class="head"><strong>Col 2 (optional info &lt;filename&gt;)</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&lt;filename&gt;.dose</td>
+<td>&lt;filename&gt;.info</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="phenotype-covariate-data">
+<h4>Phenotype/Covariate Data<a class="headerlink" href="#phenotype-covariate-data" title="Permalink to this headline">¶</a></h4>
+<p>Phenotypes and Covariate data can be found inside either the standard pedigree
+headers or within special PLINK style covariate files. Users can specify
+phenotypes and covariates using either header names (if a header exists in
+the file) or by 1 based column indices.</p>
+<dl class="option">
+<dt id="cmdoption--pheno">
+<code class="descname">--pheno</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--pheno" title="Permalink to this definition">¶</a></dt>
+<dd><p>File containing phenotypes. Unless &#8211;all-pheno is present, user must
+provide either index(s) or label(s) of the phenotypes to be analyzed.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mphenos">
+<code class="descname">--mphenos</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--mphenos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column number(s) for phenotype to be analyzed if number of columns &gt; 1.
+Comma separated list if more than one is to be used.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--pheno-names">
+<code class="descname">--pheno-names</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--pheno-names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name for phenotype(s) to be analyzed (must be in &#8211;pheno file). Comma
+separated list if more than one is to be used.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--covar">
+<code class="descname">--covar</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--covar" title="Permalink to this definition">¶</a></dt>
+<dd><p>File containing covariates</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--covar-numbers">
+<code class="descname">--covar-numbers</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--covar-numbers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Comma-separated list of covariate indices</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--covar-names">
+<code class="descname">--covar-names</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--covar-names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Comma-separated list of covariate names</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--sex">
+<code class="descname">--sex</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--sex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use sex from the pedigree file as a covariate</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--missing-phenotype">
+<code class="descname">--missing-phenotype</code><code class="descclassname"> CHAR</code><a class="headerlink" href="#cmdoption--missing-phenotype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encoding for missing phenotypes as can be found in the data.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--all-pheno">
+<code class="descname">--all-pheno</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--all-pheno" title="Permalink to this definition">¶</a></dt>
+<dd><p>When present, mv-test will run each phenotypes found inside the phenotype
+file.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="restricting-regions-for-analysis">
+<h3>Restricting regions for analysis<a class="headerlink" href="#restricting-regions-for-analysis" title="Permalink to this headline">¶</a></h3>
+<p>When specifying a range of positions for analysis, a chromosome must be present.
+If a chromosome is specified but is not accompanied by a range, the entire
+chromosome will be used. Only one range can be specified per run.</p>
+<dl class="option">
+<dt id="cmdoption--snps">
+<code class="descname">--snps</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--snps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Comma-delimited list of SNP(s): rs1,rs2,rs3-rs6</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--chr">
+<code class="descname">--chr</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--chr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select Chromosome. If not selected, all chromosomes are to be analyzed.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--from-bp">
+<code class="descname">--from-bp</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--from-bp" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNP range start</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--to-bp">
+<code class="descname">--to-bp</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--to-bp" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNP range end</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--from-kb">
+<code class="descname">--from-kb</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--from-kb" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNP range start</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--to-kb">
+<code class="descname">--to-kb</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--to-kb" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNP range end</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--from-mb">
+<code class="descname">--from-mb</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--from-mb" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNP range start</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--to-mb">
+<code class="descname">--to-mb</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--to-mb" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNP range end</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--exclude">
+<code class="descname">--exclude</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--exclude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Comma-delimited list of rsids to be excluded</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--remove">
+<code class="descname">--remove</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Comma-delimited list of individuals to be removed from analysis. This must</p>
+<p>be in the form of family_id:individual_id</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--maf">
+<code class="descname">--maf</code><code class="descclassname"> &lt;float&gt;</code><a class="headerlink" href="#cmdoption--maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum MAF allowed for analysis</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--max-maf">
+<code class="descname">--max-maf</code><code class="descclassname"> &lt;float&gt;</code><a class="headerlink" href="#cmdoption--max-maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>MAX MAF allowed for analysis</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--geno">
+<code class="descname">--geno</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--geno" title="Permalink to this definition">¶</a></dt>
+<dd><p>MAX per-SNP missing for analysis</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mind">
+<code class="descname">--mind</code><code class="descclassname"> &lt;integer&gt;</code><a class="headerlink" href="#cmdoption--mind" title="Permalink to this definition">¶</a></dt>
+<dd><p>MAX per-person missing</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--verbose">
+<code class="descname">--verbose</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output additional data details in final report</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">What is MVtest?</a><ul>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#command-line-arguments">Command-Line Arguments</a><ul>
+<li><a class="reference internal" href="#getting-help">Getting help</a></li>
+<li><a class="reference internal" href="#input-data">Input Data</a><ul>
+<li><a class="reference internal" href="#pedigree-data">Pedigree Data</a></li>
+<li><a class="reference internal" href="#plink-binary-pedigree">PLINK Binary Pedigree</a></li>
+<li><a class="reference internal" href="#transposed-pedigree-data">Transposed Pedigree Data</a></li>
+<li><a class="reference internal" href="#pedigree-transposed-pedigree-common-flags">Pedigree/Transposed Pedigree Common Flags</a></li>
+<li><a class="reference internal" href="#impute-output">IMPUTE output</a></li>
+<li><a class="reference internal" href="#impute-file-input">IMPUTE File Input</a></li>
+<li><a class="reference internal" href="#mach-output">MACH output</a></li>
+<li><a class="reference internal" href="#mach-file-input">MACH File Input</a></li>
+<li><a class="reference internal" href="#phenotype-covariate-data">Phenotype/Covariate Data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#restricting-regions-for-analysis">Restricting regions for analysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="mvmany.html" title="next chapter">mvmany Helper script</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/mvtest.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/mvtest.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

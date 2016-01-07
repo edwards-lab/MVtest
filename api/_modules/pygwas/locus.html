@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.locus &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.locus</h1><div class="highlight"><pre>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="k">class</span> <span class="nc">Locus</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Locus"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.locus.Locus">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="p">:</span>
+            <span class="c">#: Chromosome</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chr</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">chr</span>
+            <span class="c">#: BP Position</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">pos</span>
+            <span class="c">#: RSID</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rsid</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">rsid</span>
+            <span class="c">#: List of alleles present</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">alleles</span><span class="p">)</span>
+            <span class="c">#: total count of heterozygotes observed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hetero_count</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">hetero_count</span>
+            <span class="c">#: total number of minor alleles observed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">min_allele_count</span>
+            <span class="c">#: total number of major alleles observed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">maj_allele_count</span>
+            <span class="c">#: total number of missing alleles were observed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">missing_allele_count</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">missing_allele_count</span>
+            <span class="c">#: minor allele if allele info isn&#39;t available</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_maf</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_maf</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c">#: minor alelel if allele info isn&#39;t available</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_maf</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chr</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rsid</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hetero_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">missing_allele_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">flip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Locus.flip"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.locus.Locus.flip">[docs]</a>        <span class="sd">&quot;&quot;&quot;This will switch major/minor around, regardless of frequency truth.</span>
+
+<span class="sd">        This is intended for forcing one of two populations to relate correctly to the same genotype definitions. When</span>
+<span class="sd">        flipped, Ps and Qs will be backward, and the maf will no longer relate to the &quot;minor&quot; allele frequency. However,</span>
+<span class="sd">        it does allow clients to use the same calls for each population without having to perform checks during</span>
+<span class="sd">        those calculations. &quot;&quot;&quot;</span>
+
+        <span class="n">maj_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">=</span> <span class="n">maj_count</span>
+
+        <span class="n">alleles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span> <span class="o">=</span> <span class="p">[</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="nd">@property</span></div>
+    <span class="k">def</span> <span class="nf">sample_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns to total sample size&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_allele_count</span> <span class="o">*</span> <span class="mf">0.5</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">total_allele_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the total number of alleles&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hetero_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the frequency of observed heterozygotes (not available with all parsers)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hetero_count</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span><span class="p">))</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">exp_hetero_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the estimated frequency of heterozygotes&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Frequency for first allele&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_allele_count</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">q</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Frequency for second allele&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_allele_count</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">major_allele</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets/Returns the encoding for the major allele (A, C, G, T, etc)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nd">@major_allele.setter</span>
+    <span class="k">def</span> <span class="nf">major_allele</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allele</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">allele</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">minor_allele</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets/Returns the encoding for minor allele&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="nd">@minor_allele.setter</span>
+    <span class="k">def</span> <span class="nf">minor_allele</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allele</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">allele</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">maf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the MAF. This is valid for all parsers&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maf</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maf</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
+
+    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chr</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">chr</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">chr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="s">:</span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%0.4f</span><span class="s"> </span><span class="si">%0.4f</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hetero_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotype_data</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

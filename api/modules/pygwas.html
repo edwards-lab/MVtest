@@ -1,0 +1,1878 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas package &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="MVtest API Libraries" href="../modules.html" />
+    <link rel="prev" title="meanvar package" href="meanvar.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pygwas-package">
+<h1>pygwas package<a class="headerlink" href="#pygwas-package" title="Permalink to this headline">¶</a></h1>
+<p>PyGWAS provides a singular interface for using several GWAS data formats such
+as Pedigree (ped), Translated Pedigree (tped), Binary Pedigree (bed) and two
+common imputed formats, IMPUTE and MACH as well as each of the accompanying
+files such as marker or family data. Support for plink style phenotype and
+covariate formatted files are also provided.</p>
+<div class="section" id="module-pygwas.bed_parser">
+<span id="pygwas-bed-parser-module"></span><h2>pygwas.bed_parser module<a class="headerlink" href="#module-pygwas.bed_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.bed_parser.Parser">
+<em class="property">class </em><code class="descclassname">pygwas.bed_parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>fam</em>, <em>bim</em>, <em>bed</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.transposed_pedigree_parser.Parser" title="pygwas.transposed_pedigree_parser.Parser"><code class="xref py py-class docutils literal"><span class="pre">pygwas.transposed_pedigree_parser.Parser</span></code></a></p>
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report configuration for logging purposes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> &#8211; Destination for report details</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.alleles">
+<code class="descname">alleles</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.alleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alleles for each locus</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.bed_file">
+<code class="descname">bed_file</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.bed_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename associated with the binary allele information (in variant
+major format only)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.bim_file">
+<code class="descname">bim_file</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.bim_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>filename for marker info in PLINK .bim format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.extract_genotypes">
+<code class="descname">extract_genotypes</code><span class="sig-paren">(</span><em>bytes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.extract_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.extract_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts encoded genotype data from binary formatted file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bytes</strong> &#8211; array of bytes pulled from the .bed file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">standard python list containing the genotype data</td>
+</tr>
+</tbody>
+</table>
+<p>Only ind_count genotypes will be returned (even if there are
+a handful of extra pairs present).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.fam_file">
+<code class="descname">fam_file</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.fam_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename associated with the pedigree data (first 6 columns from
+standard pedigree: fid, iid, fid, mid, sex, pheno)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.families">
+<code class="descname">families</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.families" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedigree information for reporting</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.filter_missing">
+<code class="descname">filter_missing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.filter_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.filter_missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter out individuals and SNPs that have too many missing to be considered</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p>This must be run prior to actually parsing the genotypes because it
+initializes the following instance members:</p>
+<blockquote>
+<div><ul class="simple">
+<li>ind_mask</li>
+<li>total_locus_count</li>
+<li>locus_count</li>
+<li>data_parser.boundary (adds loci with too much missingness)</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.geno_conversions">
+<code class="descname">geno_conversions</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.geno_conversions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Genotype conversion</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.genotype_file">
+<code class="descname">genotype_file</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.genotype_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actual pedigree file being parsed (file object)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.ind_count">
+<code class="descname">ind_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.ind_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of valid individuals</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.ind_mask">
+<code class="descname">ind_mask</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.ind_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask indicating valid samples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.init_genotype_file">
+<code class="descname">init_genotype_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.init_genotype_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.init_genotype_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the bed file and preps it for starting at the start of the             genotype data</p>
+<p>Returns to beginning of file and reads the version so that it points         to first marker&#8217;s info</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.load_bim">
+<code class="descname">load_bim</code><span class="sig-paren">(</span><em>map3=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.load_bim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.load_bim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic marker details loading.</p>
+<blockquote>
+<div>(chr, rsid, gen. dist, pos, allelel 1, allele2)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>map3</strong> &#8211; When true, ignore the genetic distance column</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.load_fam">
+<code class="descname">load_fam</code><span class="sig-paren">(</span><em>pheno_covar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.load_fam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.load_fam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load contents from the .fam file, updating the pheno_covar with             family ids found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pheno_covar</strong> &#8211; Phenotype/covariate object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.load_genotypes">
+<code class="descname">load_genotypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.load_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.load_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares the file for genotype parsing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.bed_parser.Parser.markers">
+<code class="descname">markers</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.bed_parser.Parser.markers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valid loci to be used for analysis</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.bed_parser.Parser.populate_iteration">
+<code class="descname">populate_iteration</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.populate_iteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.populate_iteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse genotypes from the file and iteration with relevant marker             details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iteration</strong> &#8211; ParseLocus object which is returned per iteration</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True indicates current locus is valid.</td>
+</tr>
+</tbody>
+</table>
+<p>StopIteration is thrown if the marker reaches the end of the file or
+the valid genomic region for analysis.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.boundary">
+<span id="pygwas-boundary-module"></span><h2>pygwas.boundary module<a class="headerlink" href="#module-pygwas.boundary" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.boundary.BoundaryCheck">
+<em class="property">class </em><code class="descclassname">pygwas.boundary.</code><code class="descname">BoundaryCheck</code><span class="sig-paren">(</span><em>bp=(None</em>, <em>None)</em>, <em>kb=(None</em>, <em>None)</em>, <em>mb=(None</em>, <em>None)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Record boundary specifications from user to control traversal.</p>
+<p>Default boundaries are specified in numerical positions along a
+single chromosome. Users are permitted to provide boundaries in
+3 forms: Bases, Kilobasees and Megabases. All are recorded as
+single base offsets from the beginning of the chromosome (starting
+at 1).</p>
+<p>The valid setting doesn&#8217;t mean the boundary object is invalid, only
+that no actual boundary ranges have been provided. This is done to
+allow the user interface code to be a little simpler (i.e. if the
+user didn&#8217;t provide bounds using numerical boundaries, it can try
+instantiating a SnpBoundary and pass the relevant arguments to
+that object. If none are valid, then either can be used, at which
+point both act as chromosome boundaries or simple SNP filters)</p>
+<p>If chrom is specfied, all SNPs and boundaries are expected to
+reside on that chromosome.</p>
+<dl class="method">
+<dt id="pygwas.boundary.BoundaryCheck.LoadExclusions">
+<code class="descname">LoadExclusions</code><span class="sig-paren">(</span><em>snps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck.LoadExclusions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.LoadExclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load locus exclusions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>snps</strong> &#8211; Can either be a list of rsids or a file containing rsids.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p>If snps is a file, the file must only contain RSIDs separated
+by whitespace (tabs, spaces and return characters).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.boundary.BoundaryCheck.LoadSNPs">
+<code class="descname">LoadSNPs</code><span class="sig-paren">(</span><em>snps=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck.LoadSNPs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.LoadSNPs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the SNP inclusions (by RSID). This overrides true boundary definition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>snps</strong> &#8211; array of RSIDs</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p>This doesn&#8217;t define RSID ranges, so it throws InvalidBoundarySpec if it
+encounters what appears to be a range (SNP contains a &#8220;-&#8221;)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.boundary.BoundaryCheck.NoExclusions">
+<code class="descname">NoExclusions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck.NoExclusions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.NoExclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine that there are no exclusion criterion in play</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if there is no real boundary specification of any kind.</td>
+</tr>
+</tbody>
+</table>
+<p>Simple method allowing parsers to short circuit the determination of
+missingness, which can be moderately compute intensive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.boundary.BoundaryCheck.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report the boundary configuration details</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> &#8211; File (or standard out/err)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.boundary.BoundaryCheck.TestBoundary">
+<code class="descname">TestBoundary</code><span class="sig-paren">(</span><em>chr</em>, <em>pos</em>, <em>rsid</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck.TestBoundary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.TestBoundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if locus is within the boundaries and not to be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>chr</strong> &#8211; Chromosome of locus</li>
+<li><strong>pos</strong> &#8211; BP position of locus</li>
+<li><strong>rsid</strong> &#8211; RSID (used to check for exclusions)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if locus isn&#8217;t to be ignored</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.beyond_upper_bound">
+<code class="descname">beyond_upper_bound</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.beyond_upper_bound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is set once the upper limit has been exceeded</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.bounds">
+<code class="descname">bounds</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actual boundary details in BP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.chrom">
+<code class="descname">chrom</code><em class="property"> = -1</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.chrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.dropped_snps">
+<code class="descname">dropped_snps</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.dropped_snps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of loci that are to be dropped
+{chr=&gt;[pos1, pos2, ..., posN]}</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.ignored_rs">
+<code class="descname">ignored_rs</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.ignored_rs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of RS Numbers to be ignored</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.target_rs">
+<code class="descname">target_rs</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.target_rs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of RS Numbers to be targeted (ignors all but those listed)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.boundary.BoundaryCheck.valid">
+<code class="descname">valid</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if boundary conditions remain true</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.data_parser">
+<span id="pygwas-data-parser-module"></span><h2>pygwas.data_parser module<a class="headerlink" href="#module-pygwas.data_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.data_parser.DataParser">
+<em class="property">class </em><code class="descclassname">pygwas.data_parser.</code><code class="descname">DataParser</code><a class="reference internal" href="../_modules/pygwas/data_parser.html#DataParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.data_parser.DataParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract representation of all dataset parsers</p>
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.boundary">
+<code class="descname">boundary</code><em class="property"> = &lt;pygwas.boundary.BoundaryCheck object&gt;</em><a class="headerlink" href="#pygwas.data_parser.DataParser.boundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boundary object specifying valid region for analysis</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.compressed_pedigree">
+<code class="descname">compressed_pedigree</code><em class="property"> = False</em><a class="headerlink" href="#pygwas.data_parser.DataParser.compressed_pedigree" title="Permalink to this definition">¶</a></dt>
+<dd><p>When true, assume that standard pedigree and transposed pedigree are
+compressed with gzip</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.data_parser.DataParser.get_effa_freq">
+<code class="descname">get_effa_freq</code><span class="sig-paren">(</span><em>genotypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/data_parser.html#DataParser.get_effa_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.data_parser.DataParser.get_effa_freq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygwas.data_parser.DataParser.get_loci">
+<code class="descname">get_loci</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/data_parser.html#DataParser.get_loci"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.data_parser.DataParser.get_loci" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.has_fid">
+<code class="descname">has_fid</code><em class="property"> = True</em><a class="headerlink" href="#pygwas.data_parser.DataParser.has_fid" title="Permalink to this definition">¶</a></dt>
+<dd><p>When false, pedigree header expects no family id column</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.has_liability">
+<code class="descname">has_liability</code><em class="property"> = False</em><a class="headerlink" href="#pygwas.data_parser.DataParser.has_liability" title="Permalink to this definition">¶</a></dt>
+<dd><p>When false, pedigree header expects no liability column</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.has_parents">
+<code class="descname">has_parents</code><em class="property"> = True</em><a class="headerlink" href="#pygwas.data_parser.DataParser.has_parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>When false, pedigree header expects no parents columns</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.has_pheno">
+<code class="descname">has_pheno</code><em class="property"> = True</em><a class="headerlink" href="#pygwas.data_parser.DataParser.has_pheno" title="Permalink to this definition">¶</a></dt>
+<dd><p>When false, pedigree header expects no phenotype column</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.has_sex">
+<code class="descname">has_sex</code><em class="property"> = True</em><a class="headerlink" href="#pygwas.data_parser.DataParser.has_sex" title="Permalink to this definition">¶</a></dt>
+<dd><p>When false, pedigree header expects no sex column</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.ind_exclusions">
+<code class="descname">ind_exclusions</code><em class="property"> = []</em><a class="headerlink" href="#pygwas.data_parser.DataParser.ind_exclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter out specific individuals by individual ID</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.ind_inclusions">
+<code class="descname">ind_inclusions</code><em class="property"> = []</em><a class="headerlink" href="#pygwas.data_parser.DataParser.ind_inclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter in specific individuals by individual ID</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.ind_miss_tol">
+<code class="descname">ind_miss_tol</code><em class="property"> = 1.0</em><a class="headerlink" href="#pygwas.data_parser.DataParser.ind_miss_tol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter individuals with too many missing</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.max_maf">
+<code class="descname">max_maf</code><em class="property"> = 1.0</em><a class="headerlink" href="#pygwas.data_parser.DataParser.max_maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>filter out if a minor allele frequency exceeds this value</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.min_maf">
+<code class="descname">min_maf</code><em class="property"> = 0.0</em><a class="headerlink" href="#pygwas.data_parser.DataParser.min_maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>this can be used to filter out loci with too few minor alleles</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.missing_representation">
+<code class="descname">missing_representation</code><em class="property"> = '0'</em><a class="headerlink" href="#pygwas.data_parser.DataParser.missing_representation" title="Permalink to this definition">¶</a></dt>
+<dd><p>External representation of missingness</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.missing_storage">
+<code class="descname">missing_storage</code><em class="property"> = -1</em><a class="headerlink" href="#pygwas.data_parser.DataParser.missing_storage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.data_parser.DataParser.snp_miss_tol">
+<code class="descname">snp_miss_tol</code><em class="property"> = 1.0</em><a class="headerlink" href="#pygwas.data_parser.DataParser.snp_miss_tol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SNPs with too many missing</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pygwas.data_parser.DataParser.valid_indid">
+<em class="property">static </em><code class="descname">valid_indid</code><span class="sig-paren">(</span><em>indid</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/data_parser.html#DataParser.valid_indid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.data_parser.DataParser.valid_indid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pygwas.data_parser.check_inclusions">
+<code class="descclassname">pygwas.data_parser.</code><code class="descname">check_inclusions</code><span class="sig-paren">(</span><em>item</em>, <em>included=[]</em>, <em>excluded=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/data_parser.html#check_inclusions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.data_parser.check_inclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Everything passes if both are empty, otherwise, we have to check if empty or is present.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.exceptions">
+<span id="pygwas-exceptions-module"></span><h2>pygwas.exceptions module<a class="headerlink" href="#module-pygwas.exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pygwas.exceptions.InvalidBoundarySpec">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">InvalidBoundarySpec</code><span class="sig-paren">(</span><em>malformed_boundary</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#InvalidBoundarySpec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.InvalidBoundarySpec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+<p>Indicate boundary specification was malformed or non-sensical</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.InvalidSelection">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">InvalidSelection</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#InvalidSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.InvalidSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.MalformedInputFile" title="pygwas.exceptions.MalformedInputFile"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.MalformedInputFile</span></code></a></p>
+<p>Indicate that the user provided input that is meaningless.</p>
+<p>This is likely a situation where the user provided an invalid name
+for a phenotype or covariate. Probably a misspelling.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.InvariantVar">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">InvariantVar</code><span class="sig-paren">(</span><em>msg=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#InvariantVar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.InvariantVar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+<p>No minor allele found</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.MalformedInputFile">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">MalformedInputFile</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#MalformedInputFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.MalformedInputFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+<p>Error encountered in data from an input file</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.NanInResult">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">NanInResult</code><span class="sig-paren">(</span><em>msg=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#NanInResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.NanInResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+<p>NaN found in result</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.NoMatchedPhenoCovars">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">NoMatchedPhenoCovars</code><span class="sig-paren">(</span><em>msg=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#NoMatchedPhenoCovars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.NoMatchedPhenoCovars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+<p>No ids matched between pheno or covar and the family data</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.ReportableException">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">ReportableException</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#ReportableException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.ReportableException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>Simple exeception with message</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.TooFewAlleles">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">TooFewAlleles</code><span class="sig-paren">(</span><em>chr=None</em>, <em>rsid=None</em>, <em>pos=None</em>, <em>alleles=None</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#TooFewAlleles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.TooFewAlleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.TooManyAlleles" title="pygwas.exceptions.TooManyAlleles"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.TooManyAlleles</span></code></a></p>
+<p>Indicate fixed allele was found</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.TooManyAlleles">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">TooManyAlleles</code><span class="sig-paren">(</span><em>chr=None</em>, <em>rsid=None</em>, <em>pos=None</em>, <em>alleles=None</em>, <em>index=None</em>, <em>prefix='Too many alleles: '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#TooManyAlleles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.TooManyAlleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+<p>Indicate locus found with more than 2 alleles</p>
+<dl class="attribute">
+<dt id="pygwas.exceptions.TooManyAlleles.alleles">
+<code class="descname">alleles</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.exceptions.TooManyAlleles.alleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allele 1 and 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.exceptions.TooManyAlleles.chr">
+<code class="descname">chr</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.exceptions.TooManyAlleles.chr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chromosome</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.exceptions.TooManyAlleles.index">
+<code class="descname">index</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.exceptions.TooManyAlleles.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of the locus within the file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.exceptions.TooManyAlleles.pos">
+<code class="descname">pos</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.exceptions.TooManyAlleles.pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>BP Position</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.exceptions.TooManyAlleles.rsid">
+<code class="descname">rsid</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.exceptions.TooManyAlleles.rsid" title="Permalink to this definition">¶</a></dt>
+<dd><p>RSID</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pygwas.exceptions.UnsolvedLocus">
+<em class="property">exception </em><code class="descclassname">pygwas.exceptions.</code><code class="descname">UnsolvedLocus</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/exceptions.html#UnsolvedLocus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.exceptions.UnsolvedLocus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.exceptions.ReportableException" title="pygwas.exceptions.ReportableException"><code class="xref py py-class docutils literal"><span class="pre">pygwas.exceptions.ReportableException</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.impute_parser">
+<span id="pygwas-impute-parser-module"></span><h2>pygwas.impute_parser module<a class="headerlink" href="#module-pygwas.impute_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.impute_parser.Encoding">
+<em class="property">class </em><code class="descclassname">pygwas.impute_parser.</code><code class="descname">Encoding</code><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Encoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Encoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Simple enumeration for various model encodings</p>
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Encoding.Additive">
+<code class="descname">Additive</code><em class="property"> = 0</em><a class="headerlink" href="#pygwas.impute_parser.Encoding.Additive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Encoding.Dominant">
+<code class="descname">Dominant</code><em class="property"> = 1</em><a class="headerlink" href="#pygwas.impute_parser.Encoding.Dominant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Encoding.Genotype">
+<code class="descname">Genotype</code><em class="property"> = 3</em><a class="headerlink" href="#pygwas.impute_parser.Encoding.Genotype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Encoding.Raw">
+<code class="descname">Raw</code><em class="property"> = 4</em><a class="headerlink" href="#pygwas.impute_parser.Encoding.Raw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Encoding.Recessive">
+<code class="descname">Recessive</code><em class="property"> = 2</em><a class="headerlink" href="#pygwas.impute_parser.Encoding.Recessive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pygwas.impute_parser.Parser">
+<em class="property">class </em><code class="descclassname">pygwas.impute_parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>fam_details</em>, <em>archive_list</em>, <em>chroms</em>, <em>info_files=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.data_parser.DataParser" title="pygwas.data_parser.DataParser"><code class="xref py py-class docutils literal"><span class="pre">pygwas.data_parser.DataParser</span></code></a></p>
+<p>Parse IMPUTE style output.</p>
+<dl class="method">
+<dt id="pygwas.impute_parser.Parser.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> &#8211; Destination for report details</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.archives">
+<code class="descname">archives</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.archives" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is only the list of files to be processed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.chroms">
+<code class="descname">chroms</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.chroms" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of chroms to match files listed in archives</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.current_chrom">
+<code class="descname">current_chrom</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.current_chrom" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will be used to record the chromosome of the current file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.current_file">
+<code class="descname">current_file</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.current_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will be used to record the opened file used for parsing</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.current_info">
+<code class="descname">current_info</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.current_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will be used to record the info file associated with quality of SNPs</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.fam_details">
+<code class="descname">fam_details</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.fam_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>single file containing the subject details (similar to plink&#8217;s .fam)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.gen_ext">
+<code class="descname">gen_ext</code><em class="property"> = 'gen.gz'</em><a class="headerlink" href="#pygwas.impute_parser.Parser.gen_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>The genotype file suffix (of not following convention)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.impute_parser.Parser.get_effa_freq">
+<code class="descname">get_effa_freq</code><span class="sig-paren">(</span><em>genotypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser.get_effa_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser.get_effa_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the effect allele&#8217;s frequency</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.impute_parser.Parser.get_next_line">
+<code class="descname">get_next_line</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser.get_next_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser.get_next_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>If we reach the end of the file, we simply open the next, until we         run out of archives to process</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.info_ext">
+<code class="descname">info_ext</code><em class="property"> = 'info'</em><a class="headerlink" href="#pygwas.impute_parser.Parser.info_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>the extension associated with the .info files if not using conventions</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.info_files">
+<code class="descname">info_files</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.impute_parser.Parser.info_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>array of .info files</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.impute_parser.Parser.info_threshold">
+<code class="descname">info_threshold</code><em class="property"> = 0.4</em><a class="headerlink" href="#pygwas.impute_parser.Parser.info_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>The threshold associated with the .info info column</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.impute_parser.Parser.load_family_details">
+<code class="descname">load_family_details</code><span class="sig-paren">(</span><em>pheno_covar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser.load_family_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser.load_family_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load family data updating the pheno_covar with  family ids found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pheno_covar</strong> &#8211; Phenotype/covariate object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.impute_parser.Parser.load_genotypes">
+<code class="descname">load_genotypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser.load_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser.load_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares the files for genotype parsing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.impute_parser.Parser.populate_iteration">
+<code class="descname">populate_iteration</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#Parser.populate_iteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.Parser.populate_iteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse genotypes from the file and iteration with relevant marker             details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iteration</strong> &#8211; ParseLocus object which is returned per iteration</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True indicates current locus is valid.</td>
+</tr>
+</tbody>
+</table>
+<p>StopIteration is thrown if the marker reaches the end of the file or
+the valid genomic region for analysis.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pygwas.impute_parser.SetEncoding">
+<code class="descclassname">pygwas.impute_parser.</code><code class="descname">SetEncoding</code><span class="sig-paren">(</span><em>sval</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/impute_parser.html#SetEncoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.impute_parser.SetEncoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the encoding variable according to the text passed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sval</strong> &#8211; text specification for the desired model</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.locus">
+<span id="pygwas-locus-module"></span><h2>pygwas.locus module<a class="headerlink" href="#module-pygwas.locus" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.locus.Locus">
+<em class="property">class </em><code class="descclassname">pygwas.locus.</code><code class="descname">Locus</code><span class="sig-paren">(</span><em>other=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/locus.html#Locus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.locus.Locus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.alleles">
+<code class="descname">alleles</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.alleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of alleles present</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.chr">
+<code class="descname">chr</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.chr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chromosome</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.exp_hetero_freq">
+<code class="descname">exp_hetero_freq</code><a class="headerlink" href="#pygwas.locus.Locus.exp_hetero_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the estimated frequency of heterozygotes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.locus.Locus.flip">
+<code class="descname">flip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/locus.html#Locus.flip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.locus.Locus.flip" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will switch major/minor around, regardless of frequency truth.</p>
+<p>This is intended for forcing one of two populations to relate correctly to the same genotype definitions. When
+flipped, Ps and Qs will be backward, and the maf will no longer relate to the &#8220;minor&#8221; allele frequency. However,
+it does allow clients to use the same calls for each population without having to perform checks during
+those calculations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.hetero_count">
+<code class="descname">hetero_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.hetero_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>total count of heterozygotes observed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.hetero_freq">
+<code class="descname">hetero_freq</code><a class="headerlink" href="#pygwas.locus.Locus.hetero_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the frequency of observed heterozygotes (not available with all parsers)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.maf">
+<code class="descname">maf</code><a class="headerlink" href="#pygwas.locus.Locus.maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the MAF. This is valid for all parsers</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.maj_allele_count">
+<code class="descname">maj_allele_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.maj_allele_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>total number of major alleles observed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.major_allele">
+<code class="descname">major_allele</code><a class="headerlink" href="#pygwas.locus.Locus.major_allele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets/Returns the encoding for the major allele (A, C, G, T, etc)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.min_allele_count">
+<code class="descname">min_allele_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.min_allele_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>total number of minor alleles observed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.minor_allele">
+<code class="descname">minor_allele</code><a class="headerlink" href="#pygwas.locus.Locus.minor_allele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets/Returns the encoding for minor allele</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.missing_allele_count">
+<code class="descname">missing_allele_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.missing_allele_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>total number of missing alleles were observed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.p">
+<code class="descname">p</code><a class="headerlink" href="#pygwas.locus.Locus.p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency for first allele</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.pos">
+<code class="descname">pos</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>BP Position</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.q">
+<code class="descname">q</code><a class="headerlink" href="#pygwas.locus.Locus.q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency for second allele</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.rsid">
+<code class="descname">rsid</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.locus.Locus.rsid" title="Permalink to this definition">¶</a></dt>
+<dd><p>RSID</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.sample_size">
+<code class="descname">sample_size</code><a class="headerlink" href="#pygwas.locus.Locus.sample_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns to total sample size</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.locus.Locus.total_allele_count">
+<code class="descname">total_allele_count</code><a class="headerlink" href="#pygwas.locus.Locus.total_allele_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the total number of alleles</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.mach_parser">
+<span id="pygwas-mach-parser-module"></span><h2>pygwas.mach_parser module<a class="headerlink" href="#module-pygwas.mach_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.mach_parser.Encoding">
+<em class="property">class </em><code class="descclassname">pygwas.mach_parser.</code><code class="descname">Encoding</code><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Encoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Encoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="pygwas.mach_parser.Encoding.Dosage">
+<code class="descname">Dosage</code><em class="property"> = 0</em><a class="headerlink" href="#pygwas.mach_parser.Encoding.Dosage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently there is only one way to interpret these values</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pygwas.mach_parser.Parser">
+<em class="property">class </em><code class="descclassname">pygwas.mach_parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>archive_list</em>, <em>info_files=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.data_parser.DataParser" title="pygwas.data_parser.DataParser"><code class="xref py py-class docutils literal"><span class="pre">pygwas.data_parser.DataParser</span></code></a></p>
+<p>Parse IMPUTE style output.</p>
+<p>Due to the nature of the mach data format, we must load the data first
+into member before we can begin analyzing it. Due to the massive amount
+of data, SNPs are loaded in in chunks.</p>
+<dl class="docutils">
+<dt>ISSUES:</dt>
+<dd><ul class="first last">
+<li><p class="first">Currently, we will not be filtering on individuals except by explicit removal</p>
+</li>
+<li><dl class="first docutils">
+<dt>We are assuming that each gzip archive contains all data associated with the loci contained within (i.e. there won&#8217;t</dt>
+<dd><p class="first last">be separate files with different subjects inside) (( Todd email jan-9-2015))</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>There is no reason to process regions in any order. I&#8217;m thinking we&#8217;ll have a master file and then indices into that</dt>
+<dd><p class="first last">file and task count to facilitate &#8220;parallel&#8221; execution</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">There is no place to store RSID from the output that I&#8217;ve seen (Minimac output generated by Ben Zhang)</p>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report the configuration details for logging purposes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> &#8211; Destination for report details</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.mach_parser.Parser.chunk_stride">
+<code class="descname">chunk_stride</code><em class="property"> = 50000</em><a class="headerlink" href="#pygwas.mach_parser.Parser.chunk_stride" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of loci to parse at a time (larger stride requires more memory)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.mach_parser.Parser.dosage_ext">
+<code class="descname">dosage_ext</code><em class="property"> = 'dose.gz'</em><a class="headerlink" href="#pygwas.mach_parser.Parser.dosage_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension for the dosage file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.get_effa_freq">
+<code class="descname">get_effa_freq</code><span class="sig-paren">(</span><em>genotypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.get_effa_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.get_effa_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the frequency of the effect allele</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.mach_parser.Parser.info_ext">
+<code class="descname">info_ext</code><em class="property"> = 'info.gz'</em><a class="headerlink" href="#pygwas.mach_parser.Parser.info_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension for the info file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.load_family_details">
+<code class="descname">load_family_details</code><span class="sig-paren">(</span><em>pheno_covar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.load_family_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.load_family_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load contents from the .fam file, updating the pheno_covar with             family ids found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pheno_covar</strong> &#8211; Phenotype/covariate object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.load_genotypes">
+<code class="descname">load_genotypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.load_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.load_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually loads the first chunk of genotype data into memory due to         the individual oriented format of MACH data.</p>
+<p>Due to the fragmented approach to data loading necessary to avoid
+running out of RAM, this function will initialize the data structures
+with the first chunk of loci and prepare it for otherwise normal
+iteration.</p>
+<p>Also, because the parser can be assigned more than one .gen file to
+read from, it will automatically move to the next file when the
+first is exhausted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.mach_parser.Parser.min_rsquared">
+<code class="descname">min_rsquared</code><em class="property"> = 0.3</em><a class="headerlink" href="#pygwas.mach_parser.Parser.min_rsquared" title="Permalink to this definition">¶</a></dt>
+<dd><p>rsquared threshold for analysis (obtained from the mach output itself)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.openfile">
+<code class="descname">openfile</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.openfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.openfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.parse_genotypes">
+<code class="descname">parse_genotypes</code><span class="sig-paren">(</span><em>lb</em>, <em>ub</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.parse_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.parse_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts a fraction of the file (current chunk of loci) loading
+the genotypes into memoery.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lb</strong> &#8211; Lower bound of the current chunk</li>
+<li><strong>ub</strong> &#8211; Upper bound of the current chunk</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Dosage dosages for current chunk</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.mach_parser.Parser.populate_iteration">
+<code class="descname">populate_iteration</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/mach_parser.html#Parser.populate_iteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.mach_parser.Parser.populate_iteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse genotypes from the file and iteration with relevant marker             details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iteration</strong> &#8211; ParseLocus object which is returned per iteration</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True indicates current locus is valid.</td>
+</tr>
+</tbody>
+</table>
+<p>StopIteration is thrown if the marker reaches the end of the file or
+the valid genomic region for analysis.</p>
+<p>This function will force a load of the next chunk when necessary.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.parsed_locus">
+<span id="pygwas-parsed-locus-module"></span><h2>pygwas.parsed_locus module<a class="headerlink" href="#module-pygwas.parsed_locus" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.parsed_locus.ParsedLocus">
+<em class="property">class </em><code class="descclassname">pygwas.parsed_locus.</code><code class="descname">ParsedLocus</code><span class="sig-paren">(</span><em>datasource</em>, <em>index=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/parsed_locus.html#ParsedLocus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.parsed_locus.ParsedLocus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.locus.Locus" title="pygwas.locus.Locus"><code class="xref py py-class docutils literal"><span class="pre">pygwas.locus.Locus</span></code></a></p>
+<p>Locus data representing current iteration from a dataset</p>
+<p>Provide an iterator interface for all dataset types.</p>
+<dl class="attribute">
+<dt id="pygwas.parsed_locus.ParsedLocus.cur_idx">
+<code class="descname">cur_idx</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.parsed_locus.ParsedLocus.cur_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index within the list of loci being analyzed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.parsed_locus.ParsedLocus.genotype_data">
+<code class="descname">genotype_data</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.parsed_locus.ParsedLocus.genotype_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actual genotype data for this locus</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.parsed_locus.ParsedLocus.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/parsed_locus.html#ParsedLocus.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.parsed_locus.ParsedLocus.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move to the next valid locus.</p>
+<p>Will only return valid loci or exit via StopIteration exception</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.pedigree_parser">
+<span id="pygwas-pedigree-parser-module"></span><h2>pygwas.pedigree_parser module<a class="headerlink" href="#module-pygwas.pedigree_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.pedigree_parser.Parser">
+<em class="property">class </em><code class="descclassname">pygwas.pedigree_parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>mapfile</em>, <em>datasource</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pedigree_parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pedigree_parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.data_parser.DataParser" title="pygwas.data_parser.DataParser"><code class="xref py py-class docutils literal"><span class="pre">pygwas.data_parser.DataParser</span></code></a></p>
+<p>Parse standard pedigree dataset.</p>
+<p>Data should follow standard format for pedigree data, except alleles
+be either numerical (1 and 2) or as bases (A, C, T and G). All loci
+must have 2 alleles to be returned.</p>
+<p>Attributes initialized to None are only available after load_genotypes()
+has been called.</p>
+<dl class="docutils">
+<dt>Issues:</dt>
+<dd><ul class="first last simple">
+<li>Pedigree files are currently loaded in their entirety, but we could           load them in according to chunks like we are doing in mach input.</li>
+<li>There are a bunch of legacy lists which should be reduced to a single          list of Locus objects.</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pygwas.pedigree_parser.Parser.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pedigree_parser.html#Parser.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pedigree_parser.Parser.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report configuration for logging purposes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> &#8211; Destination for report details</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.alleles">
+<code class="descname">alleles</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.alleles" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of both alleles for each valid locus</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.datasource">
+<code class="descname">datasource</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.datasource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename for the actual pedigree information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.genotypes">
+<code class="descname">genotypes</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix of genotype data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pedigree_parser.Parser.get_loci">
+<code class="descname">get_loci</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pedigree_parser.html#Parser.get_loci"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pedigree_parser.Parser.get_loci" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.individual_mask">
+<code class="descname">individual_mask</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.individual_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask used to remove excluded and filtered calls from the genotype data (each position represents an individual)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.invalid_loci">
+<code class="descname">invalid_loci</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.invalid_loci" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loci that are being ignored due to filtration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pedigree_parser.Parser.load_genotypes">
+<code class="descname">load_genotypes</code><span class="sig-paren">(</span><em>pheno_covar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pedigree_parser.html#Parser.load_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pedigree_parser.Parser.load_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load all data into memory and propagate valid individuals to         pheno_covar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pheno_covar</strong> &#8211; Phenotype/covariate object is updated with subject</td>
+</tr>
+</tbody>
+</table>
+<p>information
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pedigree_parser.Parser.load_mapfile">
+<code class="descname">load_mapfile</code><span class="sig-paren">(</span><em>map3=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pedigree_parser.html#Parser.load_mapfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pedigree_parser.Parser.load_mapfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the marker data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>map3</strong> &#8211; When true, ignore the gen. distance column</td>
+</tr>
+</tbody>
+</table>
+<p>Builds up the marker list according to the boundary configuration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.locus_count">
+<code class="descname">locus_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.locus_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of valid loci</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.mapfile">
+<code class="descname">mapfile</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.mapfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename for the marker information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.markers">
+<code class="descname">markers</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.markers" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of valid Locus Objects</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.markers_maf">
+<code class="descname">markers_maf</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.markers_maf" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of MAF at each locus</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pedigree_parser.Parser.populate_iteration">
+<code class="descname">populate_iteration</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pedigree_parser.html#Parser.populate_iteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pedigree_parser.Parser.populate_iteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse genotypes from the file and iteration with relevant marker             details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iteration</strong> &#8211; ParseLocus object which is returned per iteration</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True indicates current locus is valid.</td>
+</tr>
+</tbody>
+</table>
+<p>StopIteration is thrown if the marker reaches the end of the file or
+the valid genomic region for analysis.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pedigree_parser.Parser.rsids">
+<code class="descname">rsids</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pedigree_parser.Parser.rsids" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of all SNP names for valid loci</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.pheno_covar">
+<span id="pygwas-pheno-covar-module"></span><h2>pygwas.pheno_covar module<a class="headerlink" href="#module-pygwas.pheno_covar" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.pheno_covar.PhenoCovar">
+<em class="property">class </em><code class="descclassname">pygwas.pheno_covar.</code><code class="descname">PhenoCovar</code><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Store both phenotype and covariate data in a single object.</p>
+<p>Provide iterable interface to allow evaluation of multiple phenotypes
+easily. Covariates do not change during iteration. Missing is updated
+according to the missing content within the phenotype (and covariates
+as well).</p>
+<dl class="method">
+<dt id="pygwas.pheno_covar.PhenoCovar.add_subject">
+<code class="descname">add_subject</code><span class="sig-paren">(</span><em>ind_id</em>, <em>sex=None</em>, <em>phenotype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar.add_subject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.add_subject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new subject to study, with optional sex and phenotype</p>
+<p>Throws MalformedInputFile if sex is can&#8217;t be converted to int</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.covariate_data">
+<code class="descname">covariate_data</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.covariate_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>All covariate data [[cov1],[cov2],etc]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.covariate_labels">
+<code class="descname">covariate_labels</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.covariate_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of covariate names from header, if provided
+SEX is implied, if sex_as_covariate is true.
+Covariates loaded without header are simply named Cov-N</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pheno_covar.PhenoCovar.destandardize_variables">
+<code class="descname">destandardize_variables</code><span class="sig-paren">(</span><em>tv</em>, <em>blin</em>, <em>bvar</em>, <em>errBeta</em>, <em>nonmissing</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar.destandardize_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.destandardize_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destandardize betas and other components.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.do_standardize_variables">
+<code class="descname">do_standardize_variables</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.do_standardize_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows you to turn off standardization</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pheno_covar.PhenoCovar.freeze_subjects">
+<code class="descname">freeze_subjects</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar.freeze_subjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.freeze_subjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts variable data into numpy arrays.</p>
+<p>This is required after all subjects have been added via the
+add_subject function, since we don&#8217;t know ahead of time who is
+participating in the analysis due to various filtering possibilities.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.individual_mask">
+<code class="descname">individual_mask</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.individual_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>True indicates an individual is to be excluded</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pheno_covar.PhenoCovar.load_covarfile">
+<code class="descname">load_covarfile</code><span class="sig-paren">(</span><em>file</em>, <em>indices=[]</em>, <em>names=[]</em>, <em>sample_file=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar.load_covarfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.load_covarfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load covariate data from file.</p>
+<p>Unlike phenofiles, if we already have data, we keep it (that would be the sex covariate)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pheno_covar.PhenoCovar.load_phenofile">
+<code class="descname">load_phenofile</code><span class="sig-paren">(</span><em>file</em>, <em>indices=[]</em>, <em>names=[]</em>, <em>sample_file=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar.load_phenofile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.load_phenofile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load phenotype data from phenotype file</p>
+<p>Whitespace delimited, FAMID, INDID, VAR1, [VAR2], etc</p>
+<p>Users can specify phenotypes of interest via indices and names.
+Indices are 1 based and start with the first variable. names
+must match name specified in the header (case is ignored).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.missing_encoding">
+<code class="descname">missing_encoding</code><em class="property"> = -9</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.missing_encoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal encoding for missingness</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.pedigree_data">
+<code class="descname">pedigree_data</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.pedigree_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pedigree information {FAMID:INDID =&gt; index, etc}</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.phenotype_data">
+<code class="descname">phenotype_data</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.phenotype_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raw phenotype data with every possible phenotype [[ph1],[ph2],etc]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.phenotype_names">
+<code class="descname">phenotype_names</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.phenotype_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of phenotype names from header, if provided.
+If no header is found, the phenotype is simply named Pheno-N</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.pheno_covar.PhenoCovar.prep_testvars">
+<code class="descname">prep_testvars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/pheno_covar.html#PhenoCovar.prep_testvars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.prep_testvars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure that the data is in the right form and standardized as
+expected.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.sex_as_covariate">
+<code class="descname">sex_as_covariate</code><em class="property"> = False</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.sex_as_covariate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do we use sex as a covariate?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.pheno_covar.PhenoCovar.test_variables">
+<code class="descname">test_variables</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.pheno_covar.PhenoCovar.test_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>finalized data ready for analysis</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.snp_boundary_check">
+<span id="pygwas-snp-boundary-check-module"></span><h2>pygwas.snp_boundary_check module<a class="headerlink" href="#module-pygwas.snp_boundary_check" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.snp_boundary_check.SnpBoundaryCheck">
+<em class="property">class </em><code class="descclassname">pygwas.snp_boundary_check.</code><code class="descname">SnpBoundaryCheck</code><span class="sig-paren">(</span><em>snps=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/snp_boundary_check.html#SnpBoundaryCheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.snp_boundary_check.SnpBoundaryCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.boundary.BoundaryCheck" title="pygwas.boundary.BoundaryCheck"><code class="xref py py-class docutils literal"><span class="pre">pygwas.boundary.BoundaryCheck</span></code></a></p>
+<p>RS (or other name) based boundary checking.</p>
+<p>Same rules apply as those for BoundaryCheck, except users can
+provide multiple RS boundary regions. Though, all boundary groups
+must reside on a single chromosome.</p>
+<dl class="docutils">
+<dt>Class members (these are not intended for public consumption):</dt>
+<dd><ul class="first last">
+<li><p class="first">start_bounds    bp location for boundary starts                             Currently, only one boundary is permitted. This                             is to remain consistant with plink</p>
+</li>
+<li><p class="first">end_bounds      bp location for boundary end (inclusive)</p>
+</li>
+<li><p class="first">ignored_rs      List of RS numbers to be ignored</p>
+</li>
+<li><p class="first">target_rs       List of RS numbers to be targeted</p>
+</li>
+<li><dl class="first docutils">
+<dt>dropped_snps    indices of loci that are to be dropped</dt>
+<dd><p class="first last">{chr=&gt;[pos1, pos2, ...]}</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>end_rs          This is used during iteration to identify when to</dt>
+<dd><p class="first last">turn &#8220;off&#8221; the current boundary group</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pygwas.snp_boundary_check.SnpBoundaryCheck.NoExclusions">
+<code class="descname">NoExclusions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/snp_boundary_check.html#SnpBoundaryCheck.NoExclusions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.snp_boundary_check.SnpBoundaryCheck.NoExclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine that there are no exclusion criterion in play</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if there is no real boundary specification of any kind.</td>
+</tr>
+</tbody>
+</table>
+<p>Simple method allowing parsers to short circuit the determination of
+missingness, which can be moderately compute intensive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.snp_boundary_check.SnpBoundaryCheck.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/snp_boundary_check.html#SnpBoundaryCheck.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.snp_boundary_check.SnpBoundaryCheck.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report the boundary configuration details</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> &#8211; File (or standard out/err)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.snp_boundary_check.SnpBoundaryCheck.TestBoundary">
+<code class="descname">TestBoundary</code><span class="sig-paren">(</span><em>chr</em>, <em>pos</em>, <em>rsid</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/snp_boundary_check.html#SnpBoundaryCheck.TestBoundary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.snp_boundary_check.SnpBoundaryCheck.TestBoundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if locus is within the boundaries and not to be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>chr</strong> &#8211; Chromosome of locus</li>
+<li><strong>pos</strong> &#8211; BP position of locus</li>
+<li><strong>rsid</strong> &#8211; RSID (used to check for exclusions)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if locus isn&#8217;t to be ignored</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.standardizer">
+<span id="pygwas-standardizer-module"></span><h2>pygwas.standardizer module<a class="headerlink" href="#module-pygwas.standardizer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.standardizer.NoStandardization">
+<em class="property">class </em><code class="descclassname">pygwas.standardizer.</code><code class="descname">NoStandardization</code><span class="sig-paren">(</span><em>pc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#NoStandardization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.NoStandardization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.standardizer.StandardizedVariable" title="pygwas.standardizer.StandardizedVariable"><code class="xref py py-class docutils literal"><span class="pre">pygwas.standardizer.StandardizedVariable</span></code></a></p>
+<p>This is mostly a placeholder for standardizers. Each application will
+probably have a specific approach to standardizing/destandardizing the
+input/output.</p>
+<dl class="method">
+<dt id="pygwas.standardizer.NoStandardization.destandardize">
+<code class="descname">destandardize</code><span class="sig-paren">(</span><em>estimates</em>, <em>se</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#NoStandardization.destandardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.NoStandardization.destandardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>When the pheno/covar data has been standardized, this can be
+used to rescale the betas back to a meaningful value using the
+original data.</p>
+<p>For the &#8220;Un-standardized&#8221; data, we do no conversion.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.NoStandardization.standardize">
+<code class="descname">standardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#NoStandardization.standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.NoStandardization.standardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standardize the variables within a range [-1.0 and 1.0]</p>
+<p>This replaces the local copies of this data. When it&#8217;s time to
+scale back, use destandardize from the datasource for that.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pygwas.standardizer.StandardizedVariable">
+<em class="property">class </em><code class="descclassname">pygwas.standardizer.</code><code class="descname">StandardizedVariable</code><span class="sig-paren">(</span><em>pc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Optional plugin object that can be used to standardize covariate and
+phenotype data.</p>
+<p>Many algorithms require that input be standardized in some way in order
+to work properly, however, rescaling the results is algorithm specific.
+In order to facilitate this situation, application authors can
+write up application specific Standardization objects for use with
+the data parsers.</p>
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.covar_count">
+<code class="descname">covar_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.covar_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>number of covars</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.covariates">
+<code class="descname">covariates</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.covariates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standardized covariate data</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.datasource">
+<code class="descname">datasource</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.datasource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reference back to the pheno_covar object for access to raw data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.StandardizedVariable.destandardize">
+<code class="descname">destandardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable.destandardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.destandardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stub for the appropriate destandardizer function.</p>
+<p>Each object type will do it&#8217;s own thing here.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.StandardizedVariable.get_covariate_name">
+<code class="descname">get_covariate_name</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable.get_covariate_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.get_covariate_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return label for a specific covariate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>idx</strong> &#8211; which covariate?</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">string label</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.StandardizedVariable.get_covariate_names">
+<code class="descname">get_covariate_names</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable.get_covariate_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.get_covariate_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all covariate labels as a list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of covariate names</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.StandardizedVariable.get_phenotype_name">
+<code class="descname">get_phenotype_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable.get_phenotype_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.get_phenotype_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current phenotype name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.StandardizedVariable.get_variables">
+<code class="descname">get_variables</code><span class="sig-paren">(</span><em>missing_in_geno=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable.get_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.get_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the complete set of data based on missingness over all
+for the current locus.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>missing_in_geno</strong> &#8211; mask associated with missingness in genotype</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(phenotypes, covariates, nonmissing used for this set of vars)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.idx">
+<code class="descname">idx</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>index of the current phenotype</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.missing">
+<code class="descname">missing</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>mask representing missingness (1 indicates missing)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.pheno_count">
+<code class="descname">pheno_count</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.pheno_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>number of phenotypes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.standardizer.StandardizedVariable.phenotypes">
+<code class="descname">phenotypes</code><em class="property"> = None</em><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.phenotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>standardized phenotype data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.standardizer.StandardizedVariable.standardize">
+<code class="descname">standardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#StandardizedVariable.standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.StandardizedVariable.standardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stub for the appropriate standardizer function</p>
+<p>Each Standardizer object will do it&#8217;s own thing here.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pygwas.standardizer.get_standardizer">
+<code class="descclassname">pygwas.standardizer.</code><code class="descname">get_standardizer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#get_standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.get_standardizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pygwas.standardizer.set_standardizer">
+<code class="descclassname">pygwas.standardizer.</code><code class="descname">set_standardizer</code><span class="sig-paren">(</span><em>std</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/standardizer.html#set_standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.standardizer.set_standardizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pygwas.transposed_pedigree_parser">
+<span id="pygwas-transposed-pedigree-parser-module"></span><h2>pygwas.transposed_pedigree_parser module<a class="headerlink" href="#module-pygwas.transposed_pedigree_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygwas.transposed_pedigree_parser.Parser">
+<em class="property">class </em><code class="descclassname">pygwas.transposed_pedigree_parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>tfam</em>, <em>tped</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygwas.data_parser.DataParser" title="pygwas.data_parser.DataParser"><code class="xref py py-class docutils literal"><span class="pre">pygwas.data_parser.DataParser</span></code></a></p>
+<p>Parse transposed pedigree dataset</p>
+<p>Class Members:
+tfam_file       filename associated with the pedigree information
+tped_file       Filename associated with the genotype data
+families        Pedigree information for reporting
+genotype_file   Actual pedigree file begin parsed (file object)</p>
+<dl class="method">
+<dt id="pygwas.transposed_pedigree_parser.Parser.ReportConfiguration">
+<code class="descname">ReportConfiguration</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser.ReportConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser.ReportConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygwas.transposed_pedigree_parser.Parser.filter_missing">
+<code class="descname">filter_missing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser.filter_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser.filter_missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter out individuals and SNPs that have too many missing to be considered</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.transposed_pedigree_parser.Parser.load_genotypes">
+<code class="descname">load_genotypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser.load_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser.load_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>This really just intializes the file by opening it up.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.transposed_pedigree_parser.Parser.load_tfam">
+<code class="descname">load_tfam</code><span class="sig-paren">(</span><em>pheno_covar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser.load_tfam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser.load_tfam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the pedigree portion of the data and sort out exclusions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.transposed_pedigree_parser.Parser.populate_iteration">
+<code class="descname">populate_iteration</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser.populate_iteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser.populate_iteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pour the current data into the iteration object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygwas.transposed_pedigree_parser.Parser.process_genotypes">
+<code class="descname">process_genotypes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/transposed_pedigree_parser.html#Parser.process_genotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.transposed_pedigree_parser.Parser.process_genotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse pedigree line and remove excluded individuals from geno</p>
+<p>Translates alleles into numerical genotypes (0, 1, 2) counting
+number of minor alleles.</p>
+<p>Throws exceptions if an there are not 2 distinct alleles</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygwas">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pygwas" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pygwas.BuildReportLine">
+<code class="descclassname">pygwas.</code><code class="descname">BuildReportLine</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas.html#BuildReportLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.BuildReportLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare key/value for reporting in configuration report</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; configuration &#8216;keyword&#8217;</li>
+<li><strong>value</strong> &#8211; value reported to be associated with keyword</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">formatted line starting with a comment</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygwas.Exit">
+<code class="descclassname">pygwas.</code><code class="descname">Exit</code><span class="sig-paren">(</span><em>msg</em>, <em>code=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas.html#Exit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.Exit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exit execution with return code and message
+:param msg: Message displayed prior to exit
+:param code: code returned upon exiting</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygwas.ExitIf">
+<code class="descclassname">pygwas.</code><code class="descname">ExitIf</code><span class="sig-paren">(</span><em>msg</em>, <em>do_exit</em>, <em>code=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas.html#ExitIf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.ExitIf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exit if do_exit is true</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>msg</strong> &#8211; Message displayed prior to exit</li>
+<li><strong>do_exit</strong> &#8211; exit when true</li>
+<li><strong>code</strong> &#8211; application&#8217;s return code upon exit</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygwas.sys_call">
+<code class="descclassname">pygwas.</code><code class="descname">sys_call</code><span class="sig-paren">(</span><em>cmd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas.html#sys_call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.sys_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute cmd and capture stdout and stderr</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cmd</strong> &#8211; command to be executed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(stdout, stderr)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pygwas package</a><ul>
+<li><a class="reference internal" href="#module-pygwas.bed_parser">pygwas.bed_parser module</a></li>
+<li><a class="reference internal" href="#module-pygwas.boundary">pygwas.boundary module</a></li>
+<li><a class="reference internal" href="#module-pygwas.data_parser">pygwas.data_parser module</a></li>
+<li><a class="reference internal" href="#module-pygwas.exceptions">pygwas.exceptions module</a></li>
+<li><a class="reference internal" href="#module-pygwas.impute_parser">pygwas.impute_parser module</a></li>
+<li><a class="reference internal" href="#module-pygwas.locus">pygwas.locus module</a></li>
+<li><a class="reference internal" href="#module-pygwas.mach_parser">pygwas.mach_parser module</a></li>
+<li><a class="reference internal" href="#module-pygwas.parsed_locus">pygwas.parsed_locus module</a></li>
+<li><a class="reference internal" href="#module-pygwas.pedigree_parser">pygwas.pedigree_parser module</a></li>
+<li><a class="reference internal" href="#module-pygwas.pheno_covar">pygwas.pheno_covar module</a></li>
+<li><a class="reference internal" href="#module-pygwas.snp_boundary_check">pygwas.snp_boundary_check module</a></li>
+<li><a class="reference internal" href="#module-pygwas.standardizer">pygwas.standardizer module</a></li>
+<li><a class="reference internal" href="#module-pygwas.transposed_pedigree_parser">pygwas.transposed_pedigree_parser module</a></li>
+<li><a class="reference internal" href="#module-pygwas">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">MVtest API Libraries</a><ul>
+      <li>Previous: <a href="meanvar.html" title="previous chapter">meanvar package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/pygwas.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="../_sources/modules/pygwas.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

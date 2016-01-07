@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; MVtest 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtest 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="What is MVtest?" href="mvtest.html" />
+    <link rel="prev" title="MVTest - GWAS Analysis" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>MVtest requires python 2.7.x as well as the following libraries:</p>
+<ul class="simple">
+<li>NumPy (version 1.7.2 or later)   www.numpy.org</li>
+<li>SciPY (version 0.13.2 or later)  www.scipy.org</li>
+</ul>
+<p>MVTest&#8217;s installation will attempt to install these required components
+for you, however, it requires that you have write permission to the
+installation directory. If you are using a shared system and lack the
+necessary privileges to install libraries and software yourself, you should
+please see one of the sections, <a class="reference internal" href="#miniconda"><span>Miniconda</span></a> or <a class="reference internal" href="#virtual-env"><span>Virtual Env</span></a> below
+for instructions on different options for setting up your own python
+environement which will exist entirely under your own control.</p>
+<p>Installation can be done in two ways:</p>
+<div class="section" id="install-with-pip">
+<h2>Install with PIP<a class="headerlink" href="#install-with-pip" title="Permalink to this headline">¶</a></h2>
+<p>To install using python&#8217;s package manager, pip, simply use the following command:</p>
+<p>$ <cite>pip install MVtest</cite></p>
+<p>If you have proper permission to install packages, this will attempt to download
+and install all dependencies along with MVtest itself.</p>
+</div>
+<div class="section" id="manual-installation">
+<h2>Manual Installation<a class="headerlink" href="#manual-installation" title="Permalink to this headline">¶</a></h2>
+<p>For users who do not use pip or wish to run the bundled tests as well as have
+a local copy of the manuals, manual installation is almost as easy.</p>
+<p>For users with Git installed, you can simply clone the sources using the
+following command:</p>
+<p>$ <cite>git clone https://github.com/edwards-lab/MVtest</cite></p>
+<p>Or you may visit the website and download the tarball directly from github: <a class="reference external" href="https://github.com/edwards-lab/MVtest">https://github.com/edwards-lab/MVtest</a></p>
+<p>Once you have downloaded the software, simply extract the contents and run the
+following command to install it:</p>
+<p>$ <cite>python setup.py install</cite></p>
+<p>If no errors are reported, it should be installed and ready to use.</p>
+<p><strong>Regarding PYTHON 3</strong> I began the process of updating the code to work with
+both python versions 2 and 3, however, there are some real issues with some
+library support of version 3 that is discouraging. So, until those have been
+resolved, I have no plans to invest further time toward support for python 3.</p>
+</div>
+<div class="section" id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">¶</a></h2>
+<p>Aside from the library dependencies, MVTest&#8217;s requirements depend largely on
+the number of SNPs and individuals being analyzed as well as the data format
+being used. In general, GWAS sized datasets will require several gigabytes of
+memory when using the traditional pedigree format, however, even 10s of
+thousands of subjects can be analyzed with less than 1 gigabyte of RAM when
+the data is formatted as transposed pedigree or PLINK&#8217;s default bed format.</p>
+<p>Otherwise, it is recommended that the system be run on a unix-like system
+such as Linux or OS X, but it should work under windows as well (we can&#8217;t
+offer support for running MVTest under windows).</p>
+</div>
+<div class="section" id="running-unit-tests">
+<h2>Running Unit Tests<a class="headerlink" href="#running-unit-tests" title="Permalink to this headline">¶</a></h2>
+<p>MVTest comes with a unit test suite which can be run prior to installation.
+To run the tests, simply run the following command from within the root
+directory of the extracted archive&#8217;s contents:</p>
+<p>$ <cite>python setup.py test</cite></p>
+<p>If no errors are reported, then mvtest should run correctly on your system.</p>
+</div>
+<div class="section" id="virtual-env">
+<span id="id1"></span><h2>Virtual Env<a class="headerlink" href="#virtual-env" title="Permalink to this headline">¶</a></h2>
+<p>Virtual ENV is a powerful too for python programmers and end users alike as it
+allows for users to deploy different versions of python applications without
+the need for root access to the machine.</p>
+<p>Because MVTest requires version 2.7, you&#8217;ll need to ensure that your machine&#8217;s
+python version is in compliance. Virtual Env basically uses the the system
+version of python, but creates a user owned environment wrapper allowing
+users to install libraries easily without administrative rights to the
+machine.</p>
+<p>For a helpful introduction to VirtualEnv, please have a look at the
+tutorial: <a class="reference external" href="http://www.simononsoftware.com/virtualenv-tutorial/">http://www.simononsoftware.com/virtualenv-tutorial/</a></p>
+</div>
+<div class="section" id="miniconda">
+<span id="id2"></span><h2>Miniconda<a class="headerlink" href="#miniconda" title="Permalink to this headline">¶</a></h2>
+<p>Miniconda is a minimal version of the package manager used by the Anaconda
+python distribution. It makes it easy to create local installations of python
+with the latest versions of the common scientific libraries for users who don&#8217;t
+have root access to their target machines. Basically, when you use miniconda,
+you&#8217;ll be installing your own version of Python into a directory under your
+control which allows you to install anything else you need without having to
+submit a helpdesk ticket for administrative assistance.</p>
+<p>Unlike pip, the folks behind the conda distributions provide binary downloads
+of it&#8217;s selected library components. As such, only the most popular libraries,
+such as pip, NumPY and SciPy, are supported by conda itself. However, these do
+not require compilation and may be easier to get installed than when using
+pip alone. I have experienced difficulty installing SciPy through pip and setup
+tools on our cluster here at vanderbilt due to non-standard paths for certain
+required components, but mini-conda always comes through.</p>
+<p>Firstly, download and install the appropriate version of miniconda at the
+project website. Please be sure to choose the Python 2 version:
+<a class="reference external" href="http://conda.pydata.org/miniconda.html">http://conda.pydata.org/miniconda.html</a></p>
+<p>While it is doing the installation, please allow it to update your PATH
+information. If you prefer not to always use this version of python in the
+future, simple tell it not to update your .bashrc file and note the
+instructions for loading and unloading your new python environment. Please
+note that even if you chose to update your .bashrc file, you will need to
+follow directions for loading the changes into your current shell.</p>
+<p>Once those changes have taken effect, install setuptools and scipy:
+$ <cite>conda install pip scipy</cite></p>
+<p>Installing SciPy will also force the installation of NumPy, which is
+also required for running mvtest. (setuptools includes easy_install).</p>
+<p>Once that has been completed successfully, you should be ready to follow
+the standard instructions for installing mvtest.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#install-with-pip">Install with PIP</a></li>
+<li><a class="reference internal" href="#manual-installation">Manual Installation</a></li>
+<li><a class="reference internal" href="#system-requirements">System Requirements</a></li>
+<li><a class="reference internal" href="#running-unit-tests">Running Unit Tests</a></li>
+<li><a class="reference internal" href="#virtual-env">Virtual Env</a></li>
+<li><a class="reference internal" href="#miniconda">Miniconda</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">MVTest - GWAS Analysis</a></li>
+      <li>Next: <a href="mvtest.html" title="next chapter">What is MVtest?</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/installation.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/installation.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

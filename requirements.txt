@@ -1,8 +1,0 @@
-# The following versions represent those versions I've tested mvtest with
-# and date back April, 2013. If your version is older than these, then
-# it's recommended that you update to a newer version, though, it could
-# be that it will work.
-
-mvtest
-SciPy>=0.12
-NumPy>=1.7.1

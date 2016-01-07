@@ -1,0 +1,8 @@
+Online Manuals
+==============
+
+To learn about using MVtest, users can find manuals inside the download or
+can access the online documentation found at `here. <mvtest/index.html>`_
+
+For those who would like to use the GWAS parsers to write their own tools in
+python, the API documentation can be found `here. <api/index.html>`_

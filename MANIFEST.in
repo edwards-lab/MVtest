@@ -1,5 +1,0 @@
-include doc/MVtest.pdf
-include doc/MVtestAPI.pdf
-include README.md
-include CHANGES
-include ez_setup.py

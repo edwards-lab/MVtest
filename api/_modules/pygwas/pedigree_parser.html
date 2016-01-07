@@ -1,0 +1,394 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.pedigree_parser &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.pedigree_parser</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">gzip</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">pygwas.data_parser</span> <span class="kn">import</span> <span class="n">DataParser</span>
+<span class="kn">from</span> <span class="nn">pygwas.exceptions</span> <span class="kn">import</span> <span class="n">MalformedInputFile</span>
+<span class="kn">from</span> <span class="nn">pygwas.exceptions</span> <span class="kn">import</span> <span class="n">TooManyAlleles</span>
+<span class="kn">from</span> <span class="nn">pygwas</span> <span class="kn">import</span> <span class="n">sys_call</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">BuildReportLine</span>
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<div class="viewcode-block" id="Parser"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.pedigree_parser.Parser">[docs]</a><span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="n">DataParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse standard pedigree dataset.</span>
+
+<span class="sd">    Data should follow standard format for pedigree data, except alleles</span>
+<span class="sd">    be either numerical (1 and 2) or as bases (A, C, T and G). All loci</span>
+<span class="sd">    must have 2 alleles to be returned.</span>
+
+<span class="sd">    Attributes initialized to None are only available after load_genotypes()</span>
+<span class="sd">    has been called.</span>
+
+<span class="sd">    Issues:</span>
+<span class="sd">        * Pedigree files are currently loaded in their entirety, but we could \</span>
+<span class="sd">          load them in according to chunks like we are doing in mach input.</span>
+<span class="sd">        * There are a bunch of legacy lists which should be reduced to a single\</span>
+<span class="sd">          list of Locus objects.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapfile</span><span class="p">,</span> <span class="n">datasource</span><span class="p">):</span>
+
+        <span class="c">#: Filename for the marker information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapfile</span> <span class="o">=</span> <span class="n">mapfile</span>
+        <span class="c">#: Filename for the actual pedigree information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="n">datasource</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#: Matrix of genotype data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotypes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#: Loci that are being ignored due to filtration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalid_loci</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#: Mask used to remove excluded and filtered calls from the genotype \</span>
+        <span class="c">#: data (each position represents an individual)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">individual_mask</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c">#: Number of valid loci</span>
+        <span class="n">locus_count</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: List of valid Locus Objects</span>
+        <span class="n">markers</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: List of both alleles for each valid locus</span>
+        <span class="n">alleles</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: List of all SNP names for valid loci</span>
+        <span class="n">rsids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: List of MAF at each locus</span>
+        <span class="n">markers_maf</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Parser.ReportConfiguration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.pedigree_parser.Parser.ReportConfiguration">[docs]</a>    <span class="k">def</span> <span class="nf">ReportConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Report configuration for logging purposes.</span>
+
+<span class="sd">        :param file: Destination for report details</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;PED FILE&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="p">)</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;MAP FILE&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapfile</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Parser.load_mapfile"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.pedigree_parser.Parser.load_mapfile">[docs]</a>    <span class="k">def</span> <span class="nf">load_mapfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">map3</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load the marker data</span>
+
+<span class="sd">        :param map3: When true, ignore the gen. distance column</span>
+
+<span class="sd">        Builds up the marker list according to the boundary configuration</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">map3</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">markers</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapfile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">markers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">NoExclusions</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">markers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span>    <span class="c"># Check for plink&#39;s &quot;off&quot; mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">~</span><span class="n">mask</span>               <span class="c"># Turn them all &#39;on&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">~</span><span class="n">mask</span>
+            <span class="n">snp_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">snp_count</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">snp_count</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">snp_count</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span>   <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">locus</span> <span class="ow">in</span> <span class="n">markers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">TestBoundary</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">locus</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">locus</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">locus</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">locus</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">locus</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">locus</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span>   <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rsids</span><span class="p">)</span>
+        <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">beyond_upper_bound</span> <span class="o">=</span> <span class="bp">False</span> <span class="c"># We don&#39;t follow these rules here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span>    <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Parser.load_genotypes"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.pedigree_parser.Parser.load_genotypes">[docs]</a>    <span class="k">def</span> <span class="nf">load_genotypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pheno_covar</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load all data into memory and propagate valid individuals to \</span>
+<span class="sd">        pheno_covar.</span>
+
+<span class="sd">        :param pheno_covar: Phenotype/covariate object is updated with subject</span>
+<span class="sd">        information</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">first_genotype</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">pheno_col</span>      <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_sex</span><span class="p">:</span>
+            <span class="n">first_genotype</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">pheno_col</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_parents</span><span class="p">:</span>
+            <span class="n">first_genotype</span> <span class="o">-=</span> <span class="mi">2</span>
+            <span class="n">pheno_col</span> <span class="o">-=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_pheno</span><span class="p">:</span>
+            <span class="n">first_genotype</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_fid</span><span class="p">:</span>
+            <span class="n">first_genotype</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">pheno_col</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_liability</span><span class="p">:</span>
+            <span class="n">first_genotype</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">sex_col</span> <span class="o">=</span> <span class="n">pheno_col</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">individual_mask</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">individual_mask</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dropped_individuals</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># number of missing SNPs we can tolerate before dropping an individual</span>
+        <span class="n">max_missing_for_individual</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">ind_miss_tol</span>
+
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">compressed_pedigree</span><span class="p">:</span>
+            <span class="n">ind_count</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">sys_call</span><span class="p">(</span><span class="s">&quot;gzip -cd </span><span class="si">%s</span><span class="s"> | wc -l&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.gz&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ind_count</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">sys_call</span><span class="p">(</span><span class="s">&quot;wc -l </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="p">))</span>
+        <span class="n">ind_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ind_count</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">snp_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">allelic_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">ind_count</span><span class="p">,</span> <span class="n">snp_count</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;S1&#39;</span><span class="p">)</span>
+
+        <span class="n">valid_allele_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">compressed_pedigree</span><span class="p">:</span>
+            <span class="n">input_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.gz&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">input_file</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">raw_data</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">alleles</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="n">first_genotype</span><span class="p">:])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">snp_mask</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+                <span class="c"># Convert the alleles into genotypes</span>
+
+                <span class="n">indid</span> <span class="o">=</span> <span class="s">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_fid</span><span class="p">:</span>
+                    <span class="n">indid</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c"># Ignore any subjects that are to be excluded and remove those that have too much missingness</span>
+                <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">valid_indid</span><span class="p">(</span><span class="n">indid</span><span class="p">):</span>
+                    <span class="n">missing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">alleles</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">missing</span> <span class="o">&gt;</span> <span class="n">max_missing_for_individual</span><span class="p">:</span>
+                        <span class="n">individual_mask</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">individual_mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="n">dropped_individuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indid</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sex</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="n">phenotype</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_pheno</span><span class="p">:</span>
+                            <span class="n">phenotype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="n">pheno_col</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">has_sex</span><span class="p">:</span>
+                            <span class="n">sex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="n">sex_col</span><span class="p">])</span>
+                        <span class="n">pheno_covar</span><span class="o">.</span><span class="n">add_subject</span><span class="p">(</span><span class="n">indid</span><span class="p">,</span> <span class="n">sex</span><span class="p">,</span> <span class="n">phenotype</span><span class="p">)</span>
+                        <span class="n">individual_mask</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">individual_mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="n">allelic_data</span><span class="p">[</span><span class="n">valid_allele_count</span><span class="p">]</span> <span class="o">=</span> <span class="n">alleles</span>
+                        <span class="n">valid_allele_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">individual_mask</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">individual_mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_count</span> <span class="o">=</span> <span class="n">valid_allele_count</span>
+        <span class="n">allelic_data</span> <span class="o">=</span> <span class="n">allelic_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">valid_allele_count</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotypes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">snp_count</span><span class="p">,</span> <span class="n">valid_allele_count</span><span class="p">))</span>
+        <span class="n">max_missing_individuals</span> <span class="o">=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">snp_miss_tol</span> <span class="o">*</span> <span class="n">ind_count</span>
+        <span class="n">dropped_loci</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">valid_snps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">valid_markers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">valid_rsids</span>   <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">valid_maf</span>     <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">valid_allele_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">allele_count2s</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">snp_count</span><span class="p">):</span>
+            <span class="n">snp_geno</span> <span class="o">=</span> <span class="n">allelic_data</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">alleles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">snp_geno</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alleles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TooManyAlleles</span><span class="p">(</span><span class="nb">chr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rsid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rsids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">alleles</span><span class="o">=</span><span class="n">alleles</span><span class="p">)</span>
+            <span class="c">#if len(alleles) == 1:</span>
+            <span class="c">#    print alleles, snp_geno, self.markers[i]</span>
+            <span class="c">#    raise TooFewAlleles(chr=self.markers[i][0], rsid=self.rsids[i], alleles=alleles)</span>
+
+            <span class="n">allele_count1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">snp_geno</span><span class="o">==</span><span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">allele_count2</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">maf</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alleles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">allele_count2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">snp_geno</span><span class="o">==</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">real_allele_count2</span> <span class="o">=</span> <span class="n">allele_count2</span>
+
+                <span class="k">if</span> <span class="n">allele_count2</span> <span class="o">&gt;</span> <span class="n">allele_count1</span><span class="p">:</span>
+                    <span class="n">sorted_alleles</span> <span class="o">=</span> <span class="p">[</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="n">alleles</span> <span class="o">=</span> <span class="n">sorted_alleles</span>
+                    <span class="n">allele_count</span> <span class="o">=</span> <span class="n">allele_count1</span>
+                    <span class="n">allele_count1</span> <span class="o">=</span> <span class="n">allele_count2</span>
+                    <span class="n">allele_count2</span> <span class="o">=</span> <span class="n">allele_count</span>
+                <span class="n">maf</span> <span class="o">=</span> <span class="n">allele_count2</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">allele_count1</span> <span class="o">+</span> <span class="n">allele_count2</span><span class="p">)</span>
+                <span class="n">allele_count2s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">allele_count2</span><span class="p">)</span>
+                <span class="c">#genotypes = []</span>
+                <span class="n">major_allele</span>       <span class="o">=</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">minor_allele</span>       <span class="o">=</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="n">genotype_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">snp_geno</span><span class="o">==</span><span class="n">alleles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">genotype_data</span><span class="p">[</span><span class="n">snp_geno</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_representation</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">missing_storage</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">major_allele</span> <span class="o">=</span> <span class="n">alleles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">minor_allele</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+
+            <span class="n">missing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">genotype_data</span><span class="o">==</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_storage</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">maf</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">maf</span> <span class="o">&lt;</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">min_maf</span> <span class="ow">or</span> <span class="n">maf</span> <span class="o">&gt;</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">max_maf</span> <span class="ow">or</span> <span class="n">max_missing_individuals</span> <span class="o">&lt;</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">locus_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">dropped_snps</span><span class="p">[</span><span class="n">locus_details</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">locus_details</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">dropped_loci</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">locus_details</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">locus_details</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">invalid_loci</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">genotypes</span><span class="p">[</span><span class="n">valid_snps</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">genotype_data</span>
+                <span class="n">valid_snps</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">valid_markers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">valid_rsids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rsids</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">valid_allele_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">major_allele</span><span class="p">,</span> <span class="n">minor_allele</span><span class="p">])</span>
+                <span class="n">valid_maf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">maf</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="n">valid_markers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span> <span class="o">=</span> <span class="n">valid_allele_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span>   <span class="o">=</span> <span class="n">valid_rsids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span> <span class="o">=</span> <span class="n">valid_snps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genotypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotypes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allele_count2s</span> <span class="o">=</span> <span class="n">allele_count2s</span>
+</div>
+<div class="viewcode-block" id="Parser.get_loci"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.pedigree_parser.Parser.get_loci">[docs]</a>    <span class="k">def</span> <span class="nf">get_loci</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span>
+</div>
+<div class="viewcode-block" id="Parser.populate_iteration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.pedigree_parser.Parser.populate_iteration">[docs]</a>    <span class="k">def</span> <span class="nf">populate_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse genotypes from the file and iteration with relevant marker \</span>
+<span class="sd">            details.</span>
+
+<span class="sd">        :param iteration: ParseLocus object which is returned per iteration</span>
+<span class="sd">        :return: True indicates current locus is valid.</span>
+
+<span class="sd">        StopIteration is thrown if the marker reaches the end of the file or</span>
+<span class="sd">        the valid genomic region for analysis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">iteration</span><span class="o">.</span><span class="n">cur_idx</span>
+        <span class="k">if</span> <span class="n">cur_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span><span class="p">:</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">chr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">rsid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">major_allele</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">minor_allele</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">allele_count2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allele_count2s</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotypes</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">hetero</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="o">==</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">hetero</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">maj_allele_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">hetero</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

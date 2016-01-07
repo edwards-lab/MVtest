@@ -1,0 +1,424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>meanvar.mv_esteq &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for meanvar.mv_esteq</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">exceptions</span>
+
+<span class="kn">from</span> <span class="nn">simple_timer</span> <span class="kn">import</span> <span class="n">SimpleTimer</span>
+<span class="kn">from</span> <span class="nn">pygwas.data_parser</span> <span class="kn">import</span> <span class="n">DataParser</span>
+<span class="kn">from</span> <span class="nn">mvresult</span> <span class="kn">import</span> <span class="n">MVResult</span>
+<span class="kn">from</span> <span class="nn">pygwas.exceptions</span> <span class="kn">import</span> <span class="n">UnsolvedLocus</span>
+<span class="kn">from</span> <span class="nn">pygwas.exceptions</span> <span class="kn">import</span> <span class="n">NanInResult</span>
+<span class="kn">import</span> <span class="nn">pygwas.pheno_covar</span>
+<span class="kn">from</span> <span class="nn">pygwas.standardizer</span> <span class="kn">import</span> <span class="n">get_standardizer</span>
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Copyright (C) 2015 Todd Edwards, Chun Li and Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of MVtest.</span>
+<span class="c">#</span>
+<span class="c">#     MVtest is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     MVtest is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<div class="viewcode-block" id="MeanVarEstEQ"><a class="viewcode-back" href="../../modules/meanvar.html#meanvar.mv_esteq.MeanVarEstEQ">[docs]</a><span class="k">def</span> <span class="nf">MeanVarEstEQ</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">covariates</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform the mean var calculation using estimated equestions</span>
+
+<span class="sd">    :param y: Outcomes</span>
+<span class="sd">    :param x: [genotypes, cov1, ..., covN]</span>
+<span class="sd">    :param tol: convergence criterion</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pcount</span> <span class="o">=</span> <span class="n">covariates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">beta_count</span> <span class="o">=</span> <span class="n">pcount</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">pcount</span><span class="p">))</span>
+    <span class="n">X</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+
+    <span class="n">aprime</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">cov</span> <span class="ow">in</span> <span class="n">covariates</span><span class="p">:</span>
+        <span class="n">aprime</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cov</span><span class="p">))</span>
+        <span class="n">X</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cov</span>
+        <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">aprime</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">aprime</span><span class="p">)</span>
+
+    <span class="c"># http://stackoverflow.com/questions/7267226/range-for-floats</span>
+    <span class="k">def</span> <span class="nf">frange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">jump</span><span class="p">):</span>
+        <span class="k">while</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">x</span>
+            <span class="n">x</span> <span class="o">+=</span> <span class="n">jump</span>
+        <span class="k">yield</span> <span class="mi">0</span>
+
+    <span class="k">class</span> <span class="nc">PhiReturn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">dtheta</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">=</span> <span class="n">phi</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtheta</span> <span class="o">=</span> <span class="n">dtheta</span>
+
+    <span class="k">def</span> <span class="nf">dot_diag</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This is a conveniance function to perform the following \</span>
+<span class="sd">        in a more efficient manner:</span>
+
+<span class="sd">        :param x: arr1</span>
+<span class="sd">        :param y: arr2</span>
+
+<span class="sd">        x.dot(numpy.diag(y))</span>
+
+<span class="sd">        y must be a single dimensioned array</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;You can&#39;t pass an array of shape </span><span class="si">%s</span><span class="s"> to dot_diag&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">diag_dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;diagonal multiply</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">Phi</span><span class="p">(</span><span class="n">theta</span><span class="p">):</span>
+        <span class="n">MM</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">pcount</span><span class="p">])</span>
+        <span class="n">SS</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="o">-</span><span class="n">X</span><span class="p">,</span> <span class="n">theta</span><span class="p">[</span><span class="n">pcount</span><span class="p">:]))</span>
+        <span class="n">DD1</span> <span class="o">=</span> <span class="n">MM</span> <span class="o">*</span> <span class="n">SS</span>
+        <span class="n">DD2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">MM</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">SS</span>
+        <span class="n">Phi</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">DD1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="p">(</span><span class="n">DD2</span><span class="o">-</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)))</span>
+
+        <span class="n">tX</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="n">t1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">tX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">tX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">t3</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">tX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">tX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">t1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tX</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*-</span><span class="n">SS</span>
+            <span class="n">t2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tX</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*-</span><span class="n">DD1</span>
+            <span class="n">t3</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tX</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*-</span><span class="n">DD2</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="n">t1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="n">t2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">t3</span> <span class="o">=</span> <span class="n">t3</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="n">dtheta</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">numpy</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">t2</span><span class="p">,</span> <span class="n">t3</span><span class="p">))))</span>
+        <span class="k">return</span> <span class="n">PhiReturn</span><span class="p">(</span><span class="n">Phi</span><span class="p">,</span> <span class="n">dtheta</span><span class="p">)</span>
+
+
+
+    <span class="k">class</span> <span class="nc">MvSolveReturn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">dtheta</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtheta</span> <span class="o">=</span> <span class="n">dtheta</span>
+
+    <span class="k">def</span> <span class="nf">MVsolve</span><span class="p">(</span><span class="n">theta_new</span><span class="p">):</span>
+        <span class="n">solution_found</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">mvsolve_iterations</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">solution_found</span><span class="p">:</span>
+            <span class="n">theta_old</span> <span class="o">=</span> <span class="n">theta_new</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">(</span><span class="n">theta_old</span><span class="p">)</span>
+            <span class="c">#print &quot;ITR&quot;, mvsolve_iterations, numpy.mean(theta_new),numpy.sum(numpy.absolute(theta_new - theta_old))</span>
+            <span class="n">theta_new</span> <span class="o">=</span> <span class="n">theta_old</span> <span class="o">-</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">dtheta</span><span class="p">,</span> <span class="n">tmp</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">mvsolve_iterations</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">theta_new</span> <span class="o">-</span> <span class="n">theta_old</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">):</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">(</span><span class="n">theta_new</span><span class="p">)</span>
+                <span class="n">solution_found</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mvsolve_iterations</span> <span class="o">&gt;</span> <span class="mi">25000</span><span class="p">:</span>
+                    <span class="c">#print &gt;&gt; sys.stderr, mvsolve_iterations, &quot;failures&quot;</span>
+                    <span class="k">raise</span> <span class="n">UnsolvedLocus</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">MvSolveReturn</span><span class="p">(</span><span class="n">theta_new</span><span class="p">,</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dtheta</span><span class="p">),</span> <span class="n">mvsolve_iterations</span>
+
+    <span class="k">def</span> <span class="nf">MVcalcB</span><span class="p">(</span><span class="n">theta</span><span class="p">):</span>
+        <span class="n">MM</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">pcount</span><span class="p">])</span>
+        <span class="n">SS</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">pcount</span><span class="p">:]))</span>
+        <span class="n">DD1</span> <span class="o">=</span> <span class="n">MM</span> <span class="o">*</span> <span class="n">SS</span>
+        <span class="n">DD2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">MM</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">SS</span>
+        <span class="n">AA</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">diag_dot</span><span class="p">(</span><span class="n">DD1</span><span class="p">,</span> <span class="n">X</span><span class="p">),</span> <span class="n">diag_dot</span><span class="p">(</span><span class="n">DD2</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="n">X</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">AA</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">AA</span><span class="p">)</span><span class="o">/</span> <span class="n">N</span>
+
+
+    <span class="n">mod</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">itr</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_iterations</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frange</span><span class="p">(</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">):</span>
+        <span class="n">theta</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">beta_count</span><span class="p">))</span>
+        <span class="n">theta</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mod</span><span class="p">,</span> <span class="n">iterations</span> <span class="o">=</span> <span class="n">MVsolve</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+            <span class="n">total_iterations</span> <span class="o">+=</span> <span class="n">iterations</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">:</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Completed: &quot;</span><span class="p">,</span> <span class="n">total_iterations</span><span class="p">,</span> <span class="n">itr</span>
+            <span class="k">break</span>
+        <span class="k">except</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">inst</span><span class="p">:</span>
+            <span class="c">#print type(inst)</span>
+            <span class="k">pass</span>
+        <span class="n">itr</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mod</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnsolvedLocus</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ainv</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">dtheta</span><span class="p">)</span> <span class="o">*</span> <span class="n">N</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Singular Matrix Encountered&quot;</span><span class="p">)</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="n">MVcalcB</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">ainv</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ainv</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+
+
+
+    <span class="c"># Focus on the two parameters of interest</span>
+    <span class="n">theta2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mod</span><span class="o">.</span><span class="n">theta</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mod</span><span class="o">.</span><span class="n">theta</span><span class="p">[</span><span class="n">pcount</span><span class="o">+</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">V2</span> <span class="o">=</span> <span class="n">V</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">beta_count</span><span class="p">:</span><span class="n">pcount</span><span class="p">,</span><span class="mi">1</span><span class="p">:</span><span class="n">beta_count</span><span class="p">:</span><span class="n">pcount</span><span class="p">]</span>
+    <span class="n">pvalt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">theta2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">V2</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">theta2</span><span class="p">)</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+
+    <span class="c">## From Chun&#39;s updated code:</span>
+    <span class="n">theta</span><span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">theta</span>
+    <span class="n">se</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">V</span><span class="p">)</span><span class="o">/</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">pval</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">theta</span><span class="o">/</span><span class="n">se</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pvalt</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">pval</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">V</span><span class="o">/</span><span class="n">N</span>
+</div>
+<div class="viewcode-block" id="RunMeanVar"><a class="viewcode-back" href="../../modules/meanvar.html#meanvar.mv_esteq.RunMeanVar">[docs]</a><span class="k">def</span> <span class="nf">RunMeanVar</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">geno</span><span class="p">,</span> <span class="n">covar</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;Setup and execute the mean var calculation.</span>
+
+<span class="sd">    :param pheno: Phenotype data (one phenotype at a time)</span>
+<span class="sd">    :param geno: SNP data (might be genotypes, or dosages, etc)</span>
+<span class="sd">    :param covar: List of covariate data</span>
+
+<span class="sd">    It is possible that the optimization will fail to converge. Such</span>
+<span class="sd">    cases are stripped of data, but are still reported to alert the</span>
+<span class="sd">    user that there were problems with the data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MeanVarEstEQ</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">geno</span><span class="p">,</span> <span class="n">covar</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="RunAnalysis"><a class="viewcode-back" href="../../modules/meanvar.html#meanvar.mv_esteq.RunAnalysis">[docs]</a><span class="k">def</span> <span class="nf">RunAnalysis</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">pheno_covar</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run the actual analysis on all valid loci for each phenotype</span>
+
+<span class="sd">    :param dataset: GWAS parser object</span>
+<span class="sd">    :param pheno_covar: holds all of the variables</span>
+
+<span class="sd">    This acts as a standard iterator, returning a single MVResult for</span>
+<span class="sd">    each locus/phenotype combination.</span>
+
+<span class="sd">    Missing is evaluated as anything missing in any of the</span>
+<span class="sd">    phenotype, covariate(s) or genotype</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">covar_missing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ind_count</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">covar_missing</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">total_covar_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pheno_covar</span><span class="o">.</span><span class="n">covariate_data</span><span class="p">)</span>
+    <span class="n">iteration_count</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">unsolved</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">pcount</span> <span class="o">=</span> <span class="mi">2</span><span class="o">+</span><span class="n">total_covar_count</span>
+
+    <span class="n">std</span> <span class="o">=</span> <span class="n">get_standardizer</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">snp</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">pheno_covar</span><span class="p">:</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="n">SimpleTimer</span><span class="p">()</span>
+            <span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">covariates</span><span class="p">,</span> <span class="n">nonmissing</span><span class="p">)</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">get_variables</span><span class="p">((</span><span class="n">snp</span><span class="o">.</span><span class="n">genotype_data</span><span class="o">==</span><span class="n">DataParser</span><span class="o">.</span><span class="n">missing_storage</span><span class="p">))</span>
+
+
+            <span class="n">genotypes</span>  <span class="o">=</span> <span class="n">snp</span><span class="o">.</span><span class="n">genotype_data</span><span class="p">[</span><span class="n">nonmissing</span><span class="p">]</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pvalt</span><span class="p">,</span> <span class="n">estimates</span><span class="p">,</span> <span class="n">pvalues</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">RunMeanVar</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">genotypes</span><span class="p">,</span> <span class="n">covariates</span><span class="p">)</span>
+
+                <span class="n">lmgeno</span> <span class="o">=</span> <span class="n">genotypes</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">covariates</span><span class="p">:</span>
+                    <span class="n">lmgeno</span> <span class="o">=</span> <span class="n">lmgeno</span> <span class="o">+</span> <span class="n">c</span>
+                <span class="n">lm</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">linregress</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">lmgeno</span><span class="p">)[</span><span class="mi">3</span><span class="p">]</span>
+
+
+                <span class="n">betavars</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">pvalues</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">destandardize</span><span class="p">(</span><span class="n">estimates</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">pvalues</span><span class="o">=</span><span class="n">pvalues</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">nonmissing</span><span class="o">=</span><span class="n">nonmissing</span><span class="p">)</span>
+
+                <span class="n">betas</span> <span class="o">=</span> <span class="n">betavars</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">pcount</span><span class="p">]</span>
+                <span class="n">betase</span> <span class="o">=</span> <span class="n">se</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">pcount</span><span class="p">]</span>
+                <span class="nb">vars</span> <span class="o">=</span> <span class="n">betavars</span><span class="p">[</span><span class="n">pcount</span><span class="p">:]</span>
+                <span class="n">varse</span> <span class="o">=</span> <span class="n">se</span><span class="p">[</span><span class="n">pcount</span><span class="p">:]</span>
+
+                <span class="c"># Check for invalid output</span>
+                <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">betavars</span> <span class="o">+</span> <span class="n">se</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pvalues</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">NanInResult</span><span class="p">()</span>
+
+                <span class="n">nonmissing_ct</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nonmissing</span><span class="p">)</span>
+
+                <span class="n">result</span> <span class="o">=</span> <span class="n">MVResult</span><span class="p">(</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span>
+                                <span class="n">dataset</span><span class="o">.</span><span class="n">get_effa_freq</span><span class="p">(</span><span class="n">genotypes</span><span class="p">),</span>
+                                <span class="n">non_miss_count</span><span class="o">=</span><span class="n">nonmissing_ct</span><span class="p">,</span>
+                                <span class="n">ph_label</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">get_phenotype_name</span><span class="p">(),</span>
+                                <span class="n">p_mvtest</span><span class="o">=</span><span class="n">pvalt</span><span class="p">,</span>
+                                <span class="n">beta_values</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">),</span>
+                                <span class="n">pvalues</span><span class="o">=</span><span class="n">pvalues</span><span class="p">,</span>
+                                <span class="n">stderrors</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">betase</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">varse</span><span class="p">),</span>
+                                <span class="n">maf</span><span class="o">=</span><span class="n">snp</span><span class="o">.</span><span class="n">maf</span><span class="p">,</span>
+                                <span class="n">covar_labels</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">get_covariate_names</span><span class="p">(),</span>
+                                <span class="n">lm</span><span class="o">=</span><span class="n">lm</span><span class="p">,</span>
+                                <span class="n">runtime</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">runtime</span><span class="p">(),</span>
+                <span class="p">)</span>
+
+                <span class="n">result</span><span class="o">.</span><span class="n">blin</span> <span class="o">=</span> <span class="n">estimates</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">pcount</span><span class="p">]</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">bvar</span> <span class="o">=</span> <span class="n">estimates</span><span class="p">[</span><span class="n">pcount</span><span class="p">:]</span>
+                <span class="k">yield</span> <span class="n">result</span>
+            <span class="k">except</span> <span class="n">NanInResult</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span>
+                                <span class="n">y</span><span class="o">.</span><span class="n">get_phenotype_name</span><span class="p">(),</span>
+                                <span class="s">&quot;</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nonmissing</span><span class="p">)),</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">allele_count2</span><span class="p">,</span>
+                                <span class="s">&quot;NAN-Found&quot;</span><span class="p">,</span>
+                                <span class="s">&quot;MAF=</span><span class="si">%0.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">snp</span><span class="o">.</span><span class="n">maf</span><span class="p">)]])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span>
+                                <span class="n">y</span><span class="o">.</span><span class="n">get_phenotype_name</span><span class="p">(),</span>
+                                <span class="s">&quot;</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nonmissing</span><span class="p">)),</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">allele_count2</span><span class="p">,</span>
+                                <span class="s">&quot;Unsolvable&quot;</span><span class="p">,</span>
+                                <span class="s">&quot;MAF=</span><span class="si">%0.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">snp</span><span class="o">.</span><span class="n">maf</span><span class="p">)]])</span>
+            <span class="k">except</span> <span class="n">UnsolvedLocus</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span>
+                                <span class="n">y</span><span class="o">.</span><span class="n">get_phenotype_name</span><span class="p">(),</span>
+                                <span class="s">&quot;</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nonmissing</span><span class="p">)),</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span>
+                                <span class="n">snp</span><span class="o">.</span><span class="n">allele_count2</span><span class="p">,</span>
+                                <span class="s">&quot;Unsolved&quot;</span><span class="p">,</span>
+                                <span class="s">&quot;MAF=</span><span class="si">%0.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">snp</span><span class="o">.</span><span class="n">maf</span><span class="p">)]])</span>
+                <span class="n">unsolved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snp</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unsolved</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Total unsolvable loci: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unsolved</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.mach_parser &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.mach_parser</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">pygwas</span>
+<span class="kn">from</span> <span class="nn">pygwas.data_parser</span> <span class="kn">import</span> <span class="n">DataParser</span>
+<span class="kn">from</span> <span class="nn">parsed_locus</span> <span class="kn">import</span> <span class="n">ParsedLocus</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">sys_call</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ExitIf</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">TooManyAlleles</span>
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">TooFewAlleles</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">InvalidSelection</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">pheno_covar</span> <span class="kn">import</span> <span class="n">PhenoCovar</span>
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="c"># Fake enum</span>
+<div class="viewcode-block" id="Encoding"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Encoding">[docs]</a><span class="k">class</span> <span class="nc">Encoding</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c">#: Currently there is only one way to interpret these values</span>
+    <span class="n">Dosage</span> <span class="o">=</span> <span class="mi">0</span>
+</div>
+<span class="n">encoding</span> <span class="o">=</span> <span class="n">Encoding</span><span class="o">.</span><span class="n">Dosage</span>
+
+<div class="viewcode-block" id="Parser"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser">[docs]</a><span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="n">DataParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse IMPUTE style output.</span>
+
+<span class="sd">    Due to the nature of the mach data format, we must load the data first</span>
+<span class="sd">    into member before we can begin analyzing it. Due to the massive amount</span>
+<span class="sd">    of data, SNPs are loaded in in chunks.</span>
+
+<span class="sd">    ISSUES:</span>
+<span class="sd">        * Currently, we will not be filtering on individuals except by explicit removal</span>
+<span class="sd">        * We are assuming that each gzip archive contains all data associated with the loci contained within (i.e. there won&#39;t</span>
+<span class="sd">            be separate files with different subjects inside) (( Todd email jan-9-2015))</span>
+<span class="sd">        * There is no reason to process regions in any order. I&#39;m thinking we&#39;ll have a master file and then indices into that</span>
+<span class="sd">            file and task count to facilitate &quot;parallel&quot; execution</span>
+
+<span class="sd">        * There is no place to store RSID from the output that I&#39;ve seen (Minimac output generated by Ben Zhang)</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#: Extension for the info file</span>
+    <span class="n">info_ext</span> <span class="o">=</span> <span class="s">&quot;info.gz&quot;</span>
+    <span class="c">#: Extension for the dosage file</span>
+    <span class="n">dosage_ext</span> <span class="o">=</span> <span class="s">&quot;dose.gz&quot;</span>
+    <span class="c">#: Number of loci to parse at a time (larger stride requires more memory)</span>
+    <span class="n">chunk_stride</span> <span class="o">=</span> <span class="mi">50000</span>
+    <span class="c">#: rsquared threshold for analysis (obtained from the mach output itself)</span>
+    <span class="n">min_rsquared</span> <span class="o">=</span> <span class="mf">0.3</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">archive_list</span><span class="p">,</span> <span class="n">info_files</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the structure with the family details file and the list of archives to be parsed</span>
+
+<span class="sd">        :param archive_list:    list of gzipped files to be considered</span>
+<span class="sd">        :info_files:            (optional) list of corresponding info files. If the extensions are correct, we can</span>
+<span class="sd">                                derive the info filename</span>
+<span class="sd">        :return:</span>
+
+<span class="sd">        This function assumes that all dosage files have the same sample order (as with the output from minimac)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">smallest</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">family_details</span> <span class="o">=</span> <span class="bp">None</span>      <span class="c">#  we&#39;ll use the smallest file to determine the sample order</span>
+
+        <span class="n">infos</span> <span class="o">=</span> <span class="p">[]</span>                      <span class="c"># temporary to build up info_files if they aren&#39;t provided</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">compressed_pedigree</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Parser</span><span class="o">.</span><span class="n">dosage_ext</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&quot;.gz&quot;</span><span class="p">:</span>
+                <span class="n">Parser</span><span class="o">.</span><span class="n">dosage_ext</span> <span class="o">=</span> <span class="n">Parser</span><span class="o">.</span><span class="n">dosage_ext</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">Parser</span><span class="o">.</span><span class="n">info_ext</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&quot;.gz&quot;</span><span class="p">:</span>
+                <span class="n">Parser</span><span class="o">.</span><span class="n">info_ext</span> <span class="o">=</span> <span class="n">Parser</span><span class="o">.</span><span class="n">info_ext</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="n">archive_list</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">family_details</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">smallest</span> <span class="o">&gt;</span> <span class="n">s</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">family_details</span> <span class="o">=</span> <span class="nb">file</span>
+                    <span class="n">smallest</span> <span class="o">=</span> <span class="n">s</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">info_file</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">Parser</span><span class="o">.</span><span class="n">dosage_ext</span><span class="p">,</span> <span class="n">Parser</span><span class="o">.</span><span class="n">info_ext</span><span class="p">)</span>
+                    <span class="n">pygwas</span><span class="o">.</span><span class="n">ExitIf</span><span class="p">(</span><span class="s">&quot;Info file not found, </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">info_file</span><span class="p">),</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">info_file</span><span class="p">))</span>
+                    <span class="n">pygwas</span><span class="o">.</span><span class="n">ExitIf</span><span class="p">(</span><span class="s">&quot;Info and sample files appear to be same. Is the gen_ext invalid? (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">info_file</span><span class="p">,</span> <span class="n">info_file</span> <span class="o">==</span> <span class="nb">file</span><span class="p">)</span>
+                    <span class="n">infos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info_file</span><span class="p">)</span>
+                <span class="n">idx</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">pygwas</span><span class="o">.</span><span class="n">ExitIf</span><span class="p">(</span><span class="s">&quot;Archive file not found, </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">file</span><span class="p">),</span> <span class="bp">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">archives</span> <span class="o">=</span> <span class="n">archive_list</span>        <span class="c"># This is only the list of files to be processed</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info_files</span> <span class="o">=</span> <span class="n">info_files</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info_files</span> <span class="o">=</span> <span class="n">infos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>            <span class="c"># This will be used to record the opened file used for parsing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>            <span class="c"># This will be used to record the info file associated with quality of SNPs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info_files</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Parser.ReportConfiguration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.ReportConfiguration">[docs]</a>    <span class="k">def</span> <span class="nf">ReportConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Report the configuration details for logging purposes.</span>
+
+<span class="sd">        :param file: Destination for report details</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">encodingpar</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">pygwas</span><span class="o">.</span><span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;MACH_ARCHIVES&quot;</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">arch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">[</span><span class="mi">0</span><span class="p">:]:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">pygwas</span><span class="o">.</span><span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_files</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="nb">file</span><span class="p">,</span> <span class="n">pygwas</span><span class="o">.</span><span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;ENCODING&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;Dosage&quot;</span><span class="p">,</span> <span class="s">&quot;Genotype&quot;</span><span class="p">][</span><span class="n">encoding</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="Parser.load_family_details"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.load_family_details">[docs]</a>    <span class="k">def</span> <span class="nf">load_family_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pheno_covar</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load contents from the .fam file, updating the pheno_covar with \</span>
+<span class="sd">            family ids found.</span>
+
+<span class="sd">        :param pheno_covar: Phenotype/covariate object</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mask_components</span> <span class="o">=</span> <span class="p">[]</span>        <span class="c"># 1s indicate an individual is to be masked out</span>
+
+        <span class="c">#print &gt;&gt; sys.stderr, &quot;Loading Family Details&quot;</span>
+
+        <span class="nb">file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">family_details</span>
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">compressed_pedigree</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">serr</span> <span class="o">=</span> <span class="n">sys_call</span><span class="p">(</span><span class="s">&#39;gunzip -c </span><span class="si">%s</span><span class="s"> | wc -l&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">file</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">iddata</span><span class="p">,</span> <span class="n">serr</span> <span class="o">=</span> <span class="n">sys_call</span><span class="p">(</span><span class="s">&#39;gunzip -c </span><span class="si">%s</span><span class="s"> | cut -f 1&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">file</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">serr</span> <span class="o">=</span> <span class="n">sys_call</span><span class="p">(</span><span class="s">&#39;wc -l </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">file</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">iddata</span><span class="p">,</span> <span class="n">serr</span> <span class="o">=</span> <span class="n">sys_call</span><span class="p">(</span><span class="s">&#39;cat </span><span class="si">%s</span><span class="s"> | cut -f 1&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">file</span><span class="p">))</span>
+
+        <span class="n">ids_observed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">iddata</span><span class="p">:</span>
+            <span class="n">indid</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">indid</span> <span class="o">=</span> <span class="s">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">indid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;-&gt;&quot;</span><span class="p">))</span>
+
+            <span class="n">ExitIf</span><span class="p">(</span><span class="s">&quot;Duplicate ID found in dose file: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">indid</span><span class="p">),</span> <span class="n">indid</span> <span class="ow">in</span> <span class="n">ids_observed</span><span class="p">)</span>
+            <span class="n">ids_observed</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">indid</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">valid_indid</span><span class="p">(</span><span class="n">indid</span><span class="p">):</span>
+                <span class="n">mask_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">pheno_covar</span><span class="o">.</span><span class="n">add_subject</span><span class="p">(</span><span class="n">indid</span><span class="p">,</span> <span class="n">PhenoCovar</span><span class="o">.</span><span class="n">missing_encoding</span><span class="p">,</span> <span class="n">PhenoCovar</span><span class="o">.</span><span class="n">missing_encoding</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mask_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask_components</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pheno_covar</span><span class="o">.</span><span class="n">freeze_subjects</span><span class="p">()</span>
+
+        <span class="c">#print &gt;&gt; sys.stderr, &quot;Family Details Loaded&quot;</span>
+</div>
+<div class="viewcode-block" id="Parser.openfile"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.openfile">[docs]</a>    <span class="k">def</span> <span class="nf">openfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">compressed_pedigree</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Parser.parse_genotypes"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.parse_genotypes">[docs]</a>    <span class="k">def</span> <span class="nf">parse_genotypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extracts a fraction of the file (current chunk of loci) loading</span>
+<span class="sd">        the genotypes into memoery.</span>
+
+<span class="sd">        :param lb: Lower bound of the current chunk</span>
+<span class="sd">        :param ub: Upper bound of the current chunk</span>
+<span class="sd">        :return: Dosage dosages for current chunk</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">openfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">lb</span><span class="p">:</span><span class="n">ub</span><span class="p">]</span>
+        <span class="n">word_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">word_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dosages</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_count</span><span class="p">,</span> <span class="n">word_count</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;|S5&#39;</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">word_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">dosages</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+                <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">lb</span><span class="p">:</span><span class="n">ub</span><span class="p">]</span>
+                <span class="n">word_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">EOFError</span>
+
+        <span class="k">return</span> <span class="n">dosages</span>
+</div>
+<div class="viewcode-block" id="Parser.load_genotypes"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.load_genotypes">[docs]</a>    <span class="k">def</span> <span class="nf">load_genotypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Actually loads the first chunk of genotype data into memory due to \</span>
+<span class="sd">        the individual oriented format of MACH data.</span>
+
+<span class="sd">        Due to the fragmented approach to data loading necessary to avoid</span>
+<span class="sd">        running out of RAM, this function will initialize the data structures</span>
+<span class="sd">        with the first chunk of loci and prepare it for otherwise normal</span>
+<span class="sd">        iteration.</span>
+
+<span class="sd">        Also, because the parser can be assigned more than one .gen file to</span>
+<span class="sd">        read from, it will automatically move to the next file when the</span>
+<span class="sd">        first is exhausted.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">Parser</span><span class="o">.</span><span class="n">chunk_stride</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">ub</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">Parser</span><span class="o">.</span><span class="n">chunk_stride</span> <span class="o">+</span> <span class="mi">2</span>
+
+        <span class="n">buff</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">file_index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">file_index</span><span class="p">]</span>
+
+        <span class="k">while</span> <span class="n">buff</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">buff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_genotypes</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>
+                <span class="n">buff</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_index</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">file_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">lb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">Parser</span><span class="o">.</span><span class="n">chunk_stride</span> <span class="o">+</span> <span class="mi">2</span>
+                    <span class="n">ub</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">Parser</span><span class="o">.</span><span class="n">chunk_stride</span> <span class="o">+</span> <span class="mi">2</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">archives</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">file_index</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">file_index</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+        <span class="c"># Numpy&#39;s usecols don&#39;t prevent it from loading entire file, which is too big considering ours are 60+ gigs</span>
+        <span class="c">#buff = numpy.loadtxt(self.current_file, usecols=range(lb, ub), dtype=str)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dosages</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
+
+        <span class="nb">file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">openfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info_file</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>     <span class="c"># drop header</span>
+
+        <span class="n">lindex</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">lindex</span> <span class="o">&lt;</span> <span class="n">lb</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">lindex</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rsids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locus_count</span><span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maf</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rsquared</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">while</span> <span class="n">lindex</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">ub</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">words</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">loc</span><span class="p">,</span> <span class="n">al2</span><span class="p">,</span> <span class="n">al1</span><span class="p">,</span> <span class="n">freq1</span><span class="p">,</span> <span class="n">maf</span><span class="p">,</span> <span class="n">avgcall</span><span class="p">,</span><span class="n">rsq</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
+                <span class="n">marker</span> <span class="o">=</span> <span class="n">loc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">maf</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">al1</span><span class="p">,</span> <span class="n">al2</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rsquared</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">rsq</span><span class="p">))</span>
+                <span class="n">lindex</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dosages</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">):</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;What is going on? I have &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dosages</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&quot;dosages per individual and &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">)</span>
+
+        <span class="c">#print &gt;&gt; sys.stderr, &quot;Genotypes loaded&quot;</span>
+</div>
+<div class="viewcode-block" id="Parser.get_effa_freq"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.get_effa_freq">[docs]</a>    <span class="k">def</span> <span class="nf">get_effa_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genotypes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the frequency of the effect allele&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">genotypes</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Parser.populate_iteration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.mach_parser.Parser.populate_iteration">[docs]</a>    <span class="k">def</span> <span class="nf">populate_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse genotypes from the file and iteration with relevant marker \</span>
+<span class="sd">            details.</span>
+
+<span class="sd">        :param iteration: ParseLocus object which is returned per iteration</span>
+<span class="sd">        :return: True indicates current locus is valid.</span>
+
+<span class="sd">        StopIteration is thrown if the marker reaches the end of the file or</span>
+<span class="sd">        the valid genomic region for analysis.</span>
+
+<span class="sd">        This function will force a load of the next chunk when necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">encoding</span>
+
+        <span class="c"># We never have to worry about iteration exceptions...that is taken care of in load_genotypes</span>
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">iteration</span><span class="o">.</span><span class="n">cur_idx</span>
+        <span class="k">if</span> <span class="n">cur_idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">cur_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_count</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_genotypes</span><span class="p">()</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">iteration</span><span class="o">.</span><span class="n">chr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">TestBoundary</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">rsid</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsquared</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Parser</span><span class="o">.</span><span class="n">min_rsquared</span><span class="p">:</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span> <span class="n">iteration</span><span class="o">.</span><span class="n">minor_allele</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alleles</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">]</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dosages</span><span class="p">[</span><span class="n">cur_idx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_mask</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">_maf</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">iteration</span><span class="o">.</span><span class="n">allele_count2</span> <span class="o">=</span> <span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">iteration</span><span class="o">.</span><span class="n">genotype_data</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">iteration</span><span class="o">.</span><span class="n">maf</span> <span class="o">&gt;=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">min_maf</span> <span class="ow">and</span> <span class="n">iteration</span><span class="o">.</span><span class="n">maf</span> <span class="o">&lt;=</span> <span class="n">DataParser</span><span class="o">.</span><span class="n">max_maf</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the file and begin iteration&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">ParsedLocus</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

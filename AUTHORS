@@ -1,7 +1,0 @@
-MVTest is written and maintained by Eric Torstenson
-<eric.s.torstenson@vanderbilt.edu> based on the algorithm developed by Todd
-Edwards <todd.l.edwards@vanderbilt> and Chun Li <cxl791@case.edu>.
-
-Much of the command line interface is mimicks that of PLINK
-http://pngu.mgh.harvard.edu/~purcell/plink/ in order to make it easy for
-researchers to be able to quickly integrate MVTest into their workflow.

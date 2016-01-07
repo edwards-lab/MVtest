@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pygwas.boundary &mdash; MVtestAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtestAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="pygwas" href="../pygwas.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pygwas.boundary</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">from</span> <span class="nn">exceptions</span> <span class="kn">import</span> <span class="n">InvalidBoundarySpec</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">BuildReportLine</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
+<span class="c">#     This file is part of pyGWAS.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is free software: you can redistribute it and/or modify</span>
+<span class="c">#     it under the terms of the GNU General Public License as published by</span>
+<span class="c">#     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c">#     (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c">#     pyGWAS is distributed in the hope that it will be useful,</span>
+<span class="c">#     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c">#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c">#     GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c">#     You should have received a copy of the GNU General Public License</span>
+<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<div class="viewcode-block" id="BoundaryCheck"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.boundary.BoundaryCheck">[docs]</a><span class="k">class</span> <span class="nc">BoundaryCheck</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Record boundary specifications from user to control traversal.</span>
+
+<span class="sd">    Default boundaries are specified in numerical positions along a</span>
+<span class="sd">    single chromosome. Users are permitted to provide boundaries in</span>
+<span class="sd">    3 forms: Bases, Kilobasees and Megabases. All are recorded as</span>
+<span class="sd">    single base offsets from the beginning of the chromosome (starting</span>
+<span class="sd">    at 1).</span>
+
+<span class="sd">    The valid setting doesn&#39;t mean the boundary object is invalid, only</span>
+<span class="sd">    that no actual boundary ranges have been provided. This is done to</span>
+<span class="sd">    allow the user interface code to be a little simpler (i.e. if the</span>
+<span class="sd">    user didn&#39;t provide bounds using numerical boundaries, it can try</span>
+<span class="sd">    instantiating a SnpBoundary and pass the relevant arguments to</span>
+<span class="sd">    that object. If none are valid, then either can be used, at which</span>
+<span class="sd">    point both act as chromosome boundaries or simple SNP filters)</span>
+
+<span class="sd">    If chrom is specfied, all SNPs and boundaries are expected to</span>
+<span class="sd">    reside on that chromosome.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chrom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bp</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="n">kb</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="n">mb</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize boundary</span>
+
+<span class="sd">        :param bp: limit range in base pairs</span>
+<span class="sd">        :param kb: limit range in kilobases</span>
+<span class="sd">        :param mb: limit range in megabases</span>
+<span class="sd">        :return: None</span>
+
+<span class="sd">        If any of the range objects contains a valid pair, valid is set to</span>
+<span class="sd">        be True. Only one boundary pair is accepted. So, if multiples are</span>
+<span class="sd">        provided, the most specific is accepted (bp is most specific).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#: List of RS Numbers to be ignored</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignored_rs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c">#: List of RS Numbers to be targeted (ignors all but those listed)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_rs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c">#: Indices of loci that are to be dropped</span>
+        <span class="c">#: {chr=&gt;[pos1, pos2, ..., posN]}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropped_snps</span>   <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+        <span class="c">#: Actual boundary details in BP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c">#: True if boundary conditions remain true</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">bp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">bp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">bp</span>
+        <span class="k">elif</span> <span class="n">kb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">kb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">kb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="o">*</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">kb</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">mb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">mb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">mb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000000</span><span class="o">*</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mb</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c">#: Is set once the upper limit has been exceeded</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beyond_upper_bound</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="BoundaryCheck.LoadExclusions"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.boundary.BoundaryCheck.LoadExclusions">[docs]</a>    <span class="k">def</span> <span class="nf">LoadExclusions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snps</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Load locus exclusions.</span>
+
+<span class="sd">        :param snps: Can either be a list of rsids or a file containing rsids.</span>
+<span class="sd">        :return: None</span>
+
+<span class="sd">        If snps is a file, the file must only contain RSIDs separated</span>
+<span class="sd">        by whitespace (tabs, spaces and return characters).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">snp_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">snps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">snps</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">snp_names</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">snps</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">snp_names</span> <span class="o">=</span> <span class="n">snps</span>
+        <span class="k">for</span> <span class="n">snp</span> <span class="ow">in</span> <span class="n">snp_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">snp</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ignored_rs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snp</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BoundaryCheck.TestBoundary"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.boundary.BoundaryCheck.TestBoundary">[docs]</a>    <span class="k">def</span> <span class="nf">TestBoundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">chr</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">rsid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test if locus is within the boundaries and not to be ignored.</span>
+
+<span class="sd">        :param chr: Chromosome of locus</span>
+<span class="sd">        :param pos: BP position of locus</span>
+<span class="sd">        :param rsid: RSID (used to check for exclusions)</span>
+<span class="sd">        :return: True if locus isn&#39;t to be ignored</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># We can skip over anything that has a negative boundary</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Skip over anything that has been explicitly ignored</span>
+        <span class="k">if</span> <span class="n">rsid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignored_rs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># If Chromosome isn&#39;t defined, then we have no bounds</span>
+        <span class="k">if</span> <span class="n">BoundaryCheck</span><span class="o">.</span><span class="n">chrom</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropped_snps</span><span class="p">[</span><span class="nb">chr</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">beyond_upper_bound</span> <span class="o">=</span> <span class="nb">chr</span> <span class="o">&gt;</span> <span class="n">BoundaryCheck</span><span class="o">.</span><span class="n">chrom</span>
+
+        <span class="k">if</span> <span class="nb">chr</span> <span class="o">==</span> <span class="n">BoundaryCheck</span><span class="o">.</span><span class="n">chrom</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropped_snps</span><span class="p">[</span><span class="nb">chr</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">pos</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">pos</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="n">pos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropped_snps</span><span class="p">[</span><span class="nb">chr</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">beyond_upper_bound</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">rsid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rs</span>
+</div>
+<div class="viewcode-block" id="BoundaryCheck.NoExclusions"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.boundary.BoundaryCheck.NoExclusions">[docs]</a>    <span class="k">def</span> <span class="nf">NoExclusions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine that there are no exclusion criterion in play</span>
+
+<span class="sd">        :return: True if there is no real boundary specification of any kind.</span>
+
+<span class="sd">        Simple method allowing parsers to short circuit the determination of</span>
+<span class="sd">        missingness, which can be moderately compute intensive.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ignored_rs</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_rs</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BoundaryCheck</span><span class="o">.</span><span class="n">chrom</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="BoundaryCheck.ReportConfiguration"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.boundary.BoundaryCheck.ReportConfiguration">[docs]</a>    <span class="k">def</span> <span class="nf">ReportConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Report the boundary configuration details</span>
+
+<span class="sd">        :param f: File (or standard out/err)</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">BoundaryCheck</span><span class="o">.</span><span class="n">chrom</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;CHROM&quot;</span><span class="p">,</span> <span class="n">BoundaryCheck</span><span class="o">.</span><span class="n">chrom</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;SNP BOUNDARY&quot;</span><span class="p">,</span> <span class="s">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ignored_rs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;IGNORED RS&quot;</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ignored_rs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_rs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">BuildReportLine</span><span class="p">(</span><span class="s">&quot;TARGET RS&quot;</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_rs</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="BoundaryCheck.LoadSNPs"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.boundary.BoundaryCheck.LoadSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">LoadSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snps</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Define the SNP inclusions (by RSID). This overrides true boundary definition.</span>
+
+<span class="sd">        :param snps: array of RSIDs</span>
+<span class="sd">        :return: None</span>
+
+<span class="sd">        This doesn&#39;t define RSID ranges, so it throws InvalidBoundarySpec if it</span>
+<span class="sd">        encounters what appears to be a range (SNP contains a &quot;-&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">snp</span> <span class="ow">in</span> <span class="n">snps</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">snp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;-&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">target_rs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidBoundarySpec</span><span class="p">(</span><span class="n">snp</span><span class="p">)</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../pygwas.html">pygwas</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

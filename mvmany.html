@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mvmany Helper script &mdash; MVtest 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MVtest 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="Development Notes" href="changes.html" />
+    <link rel="prev" title="What is MVtest?" href="mvtest.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mvmany-helper-script">
+<h1>mvmany Helper script<a class="headerlink" href="#mvmany-helper-script" title="Permalink to this headline">¶</a></h1>
+<p>In addition to the analysis program, mvtest.py, a helper script, mvmany.py is
+also included and can be used to split large jobs into smaller ones suitable
+for running on a compute cluster. Users simply run mvmany.py just like they
+would run mvtest.py but with a few additional parameters, and mvmany.py will
+build multiple job scripts to run the jobs on multiple nodes. It records most
+arguments passed to it and will write them to the scripts that are produced.</p>
+<p>It is important to note that mvmany.py simply generates cluster scripts and
+does not submit them.</p>
+<div class="section" id="the-default-template">
+<h2>The Default Template<a class="headerlink" href="#the-default-template" title="Permalink to this headline">¶</a></h2>
+<p>When mvmany.py is first run, it will generate a copy of the default template
+inside the user&#8217;s home directory named .mv-many.template. This template is
+used to define the job details that will be written to each of the job scripts.
+By default, the template is configured for the SLURM cluster software, but can
+easily be changed to work with any cluster software that works similarly to
+the SLURM job manager, such as TORQUE/PBS or sungrid.</p>
+<p>In addition to being able to replace the preprocessor definitions to work with
+different cluster manager software, the user can also add user specific
+definitions, such as email notifications or account specification, giving the
+user the the options necessary to run the software under many different system
+configurations.</p>
+<div class="section" id="example-template-slurm">
+<h3>Example Template (SLURM)<a class="headerlink" href="#example-template-slurm" title="Permalink to this headline">¶</a></h3>
+<p>An example template might look like the following</p>
+<div class="highlight-python"><div class="highlight"><pre>#!/bin/bash
+#SBATCH --job-name=$jobname
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=$memory
+#SBATCH --time=$walltime
+#SBATCH --error $logpath/$jobname.e
+#SBATCH --output $respath/$jobname.txt
+
+cd $pwd
+
+$body
+</pre></div>
+</div>
+<p>It is important to note that this block of text contains a mix of SLURM
+preprocessor settings (such as #SBATCH &#8211;job-name) as well as variables
+which will be replaced with appropriate values (such as $jobname being replaced
+with a string of text which is unique to that particular job). Each cluster
+type has it&#8217;s own syntax for setting the necessary variables and it is assumed
+that the user will know how to correctly edit the default template to suit
+their needs.</p>
+</div>
+<div class="section" id="example-torque-template">
+<h3>Example TORQUE Template<a class="headerlink" href="#example-torque-template" title="Permalink to this headline">¶</a></h3>
+<p>For instance, to use these scripts on a TORQUE based cluster, one might update
+~/.mvmany.template to the following</p>
+<div class="highlight-python"><div class="highlight"><pre>#!/bin/bash
+#PBS -N $jobname
+#PBS -l nodes=1
+#PBS -l ppn=1
+#PBS -l mem=$memory
+#PBS -l walltime=$walltime
+#PBS -e $logpath/$jobname.e
+#PBS -o $respath/$jobname.txt
+
+cd $pwd
+
+$body
+</pre></div>
+</div>
+<p>Please note that not all SLURM settings have a direct mapping to PBS settings
+and that it is up to the user to understand how to properly configure their
+cluster job headers.</p>
+<p>In general, the user should ensure that each of the variables are properly
+defined so that the corresponding values will be written to the final job
+scripts. The following variables are replaced based on the job that is being
+performed and the parameters passed to the program by the user (or their
+default values):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="42%" />
+<col width="58%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Variable</strong></th>
+<th class="head"><strong>Purpose</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>$jobname</td>
+<td>Unique name for the current job</td>
+</tr>
+<tr class="row-odd"><td>$memory (2G)</td>
+<td>Amount of memory to provide each job.</td>
+</tr>
+<tr class="row-even"><td>$walltime (3:00:00)</td>
+<td>Define amount of time to be assigned to jobs</td>
+</tr>
+<tr class="row-odd"><td>$logpath</td>
+<td>Directory specified for writing logs</td>
+</tr>
+<tr class="row-even"><td>$respath</td>
+<td>Directory sepcified for writing results</td>
+</tr>
+<tr class="row-odd"><td>$pwd</td>
+<td>current working dir when mvmany is run</td>
+</tr>
+<tr class="row-even"><td>$body</td>
+<td>Statements of execution</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="command-line-arguments">
+<h2>Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permalink to this headline">¶</a></h2>
+<p>mvmany.py exposes the following additional arguments for use when running
+the script.</p>
+<dl class="option">
+<dt id="cmdoption--mv-path">
+<code class="descname">--mv-path</code><code class="descclassname"> PATH</code><a class="headerlink" href="#cmdoption--mv-path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set path to mvtest.py if it&#8217;s not in PATH</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--logpath">
+<code class="descname">--logpath</code><code class="descclassname"> PATH</code><a class="headerlink" href="#cmdoption--logpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to location of job&#8217;s error output</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--res-path">
+<code class="descname">--res-path</code><code class="descclassname"> PATH</code><a class="headerlink" href="#cmdoption--res-path" title="Permalink to this definition">¶</a></dt>
+<dt id="cmdoption-arg-Path">
+<code class="descname">Path</code><code class="descclassname"> to location of job's results</code><a class="headerlink" href="#cmdoption-arg-Path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--script-path">
+<code class="descname">--script-path</code><code class="descclassname"> PATH</code><a class="headerlink" href="#cmdoption--script-path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path for writing script files</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--template">
+<code class="descname">--template</code><code class="descclassname"> FILENAME</code><a class="headerlink" href="#cmdoption--template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify a template other than the default</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--snps-per-job">
+<code class="descname">--snps-per-job</code><code class="descclassname"> INTEGER</code><a class="headerlink" href="#cmdoption--snps-per-job" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the number of SNPs to be run at one time</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mem">
+<code class="descname">--mem</code><code class="descclassname"> STRING</code><a class="headerlink" href="#cmdoption--mem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the amount of memory to be requested for each job</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--wall-time">
+<code class="descname">--wall-time</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--wall-time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify amount of time to be requested for each job</p>
+</dd></dl>
+
+<p>The option, &#8211;mem, is dependent on the type of input that is being used as well
+as configurable options to be used. The user should perform basic test runs
+to determine proper settings for their jobs. By default, 2G is used, which is
+generally more than adequate for binary pedigrees, IMPUTE and transposed
+pedigrees. Others will vary greatly based on the size of the dataset and the
+settings being used.</p>
+<p>The option, &#8211;wall-time, is largely machine dependent but will vary based on
+the actual dataset&#8217;s size and completeness of the data. Users should perform
+spot tests to determine reasonable values. By default, the requested wall-time
+is 3 days, which is sufficient for a GWAS dataset, but probably not
+sufficient for an entire whole exome dataset and the time required will depend
+on just how many SNPs are being analyzed by any given node.</p>
+<p>In general, mvmany.py accepts all arguments that mvtest.py accepts, with the
+exception of those that are more appropriately defined by mvmany.py itself.
+These include the following arguments</p>
+<div class="highlight-python"><div class="highlight"><pre>--chr
+--snps
+--from-bp
+--to-bp
+--from-kb
+--to-kb
+--from-mb
+--to-mb
+</pre></div>
+</div>
+<p>To see a comprehensive list of the arguments that mvmany.py can use simply
+ask the program itself</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mvmany</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p>Users can have mvmany split certain types of jobs up into pieces and can
+specify how many independent commands to be run per job. At this time,
+mvmany.py assumes that imputation data is already split into fragments and
+doesn&#8217;t support running parts of a single file on multiple nodes.</p>
+<p>The results generated can be manually merged once all nodes have completed
+execution.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mvmany Helper script</a><ul>
+<li><a class="reference internal" href="#the-default-template">The Default Template</a><ul>
+<li><a class="reference internal" href="#example-template-slurm">Example Template (SLURM)</a></li>
+<li><a class="reference internal" href="#example-torque-template">Example TORQUE Template</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#command-line-arguments">Command Line Arguments</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="mvtest.html" title="previous chapter">What is MVtest?</a></li>
+      <li>Next: <a href="changes.html" title="next chapter">Development Notes</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/mvmany.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Todd Edwards, Chun Li and Eric Torstenson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/mvmany.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
