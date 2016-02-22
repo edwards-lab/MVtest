@@ -331,10 +331,13 @@ the same except for the &lt;extension&gt;.</p>
 many files, the format is a single file which contains either pairs of
 dosage/info files, or, if the two files share the same filename except for
 extensions, one dosage file per line.</p>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
 <p>There is one caveat when using MACH output for analysis: MV-Test requires
 Chromosome and Position for consistency in reporting. As such, the IDs inside
 .info files must be of the form: chrom:pos</p>
-<p>If RSIDs or solely positions are found, MVtest will exit with an error.</p>
+<p class="last">If RSIDs or solely positions are found, MVtest will exit with an error.</p>
+</div>
 <p>When running MVtest using MACH dosage on a cluster, users can instruct a given
 job to anlyze data from a portion of the files contained within the MACH
 dosage file list by changing the &#8211;mach-offset and &#8211;mach-count arguments. By
