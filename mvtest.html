@@ -333,11 +333,20 @@ dosage/info files, or, if the two files share the same filename except for
 extensions, one dosage file per line.</p>
 <div class="admonition important">
 <p class="first admonition-title">Important</p>
-<p>There is one caveat when using MACH output for analysis: MV-Test requires
-Chromosome and Position for consistency in reporting. As such, the intiail
-column for .info files must be of the form: chrom:pos</p>
-<p class="last">Currently, if rsIDs (with or without the chromosome) or just the position
-will produce an error during execution.</p>
+<p>MACH doesn&#8217;t provide anywhere to store chromosome and positions. Users may
+wish to embed this information into the first column inside the .info file.
+Doing so will allow MVtest to recognize those values and populate the
+corresponding fields in the report.</p>
+<p>To use this feature, users much use the &#8211;mach-chrpos field and their ID
+columns inside the .info file must be formatted in the following way:</p>
+<p>chr:pos (optionally :rsid)</p>
+<p>When the &#8211;mach-chrpos flag is used, MVtest will fail when it encounters
+IDs that aren&#8217;t in this format and there must be at least 2 &#8216;fields&#8217; (i.e.
+there must be at least one &#8221;:&#8221; character.</p>
+<p class="last">When processing MACH imputed data without this special encoding of IDs,
+MCtest will be unable to recognize positions. As a result, unless the
+&#8211;mach-chrpos flag is present, MVtest will exit with an error if the
+user attempts to use positional filters such as &#8211;from-bp, &#8211;chr, etc.</p>
 </div>
 <p>When running MVtest using MACH dosage on a cluster, users can instruct a given
 job to anlyze data from a portion of the files contained within the MACH
@@ -376,7 +385,8 @@ contain the info names as well (separated by whitespace) if the two
 <dt id="cmdoption--mach-uncompressed">
 <code class="descname">--mach-uncompressed</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--mach-uncompressed" title="Permalink to this definition">¶</a></dt>
 <dd><p>By default, MACH input is expected to be gzip compressed. If data is plain
-text, add this flag</p>
+text, add this flag. <em>It should be noted that dosage and info files should
+be either both compressed or both uncompressed.</em></p>
 </dd></dl>
 
 <dl class="option">
@@ -403,6 +413,15 @@ in chunks in order to minimize excessive memory during loading</p>
 <code class="descname">--mach-min-rsquared</code><code class="descclassname"> &lt;float&gt;</code><a class="headerlink" href="#cmdoption--mach-min-rsquared" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indicate the minimum threshold for the rsqured value from the .info files
 required for analysis.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption--mach-chrpos">
+<code class="descname">--mach-chrpos</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption--mach-chrpos" title="Permalink to this definition">¶</a></dt>
+<dd><p>When set, MVtest expects IDs from the .info file to be in the format
+chr:pos:rsid (rsid is optional). This will allow the report to contain
+positional details, otherwise, only the RSID column will have a value
+which will be the contents of the first column from the .info file</p>
 </dd></dl>
 
 </div>
@@ -439,7 +458,9 @@ the extension.</p>
 <p>Phenotypes and Covariate data can be found inside either the standard pedigree
 headers or within special PLINK style covariate files. Users can specify
 phenotypes and covariates using either header names (if a header exists in
-the file) or by 1 based column indices.</p>
+the file) or by 1 based column indices. An index of 1 actually means the
+first variable column, not the first column. In general, this will be the
+3rd column, since columns 1 and 2 reference FID and IID.</p>
 <dl class="option">
 <dt id="cmdoption--pheno">
 <code class="descname">--pheno</code><code class="descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption--pheno" title="Permalink to this definition">¶</a></dt>
@@ -505,6 +526,9 @@ file.</p>
 <p>When specifying a range of positions for analysis, a chromosome must be present.
 If a chromosome is specified but is not accompanied by a range, the entire
 chromosome will be used. Only one range can be specified per run.</p>
+<p>In general, when specifying region limits, &#8211;chr must be defined unless using
+generic MACH input (which doesn&#8217;t define a chromosome number nor position, in
+which case positional restrictions do not apply).</p>
 <dl class="option">
 <dt id="cmdoption--snps">
 <code class="descname">--snps</code><code class="descclassname"> LIST</code><a class="headerlink" href="#cmdoption--snps" title="Permalink to this definition">¶</a></dt>
