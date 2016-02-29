@@ -39,7 +39,7 @@
           <div class="body" role="main">
             
   <h1>Source code for pygwas.locus</h1><div class="highlight"><pre>
-<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Eric Torstenson&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Todd Edwards, Chun Li &amp; Eric Torstenson&quot;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GPL3.0&quot;</span>
 <span class="c">#     This file is part of pyGWAS.</span>
 <span class="c">#</span>
@@ -54,7 +54,7 @@
 <span class="c">#     GNU General Public License for more details.</span>
 <span class="c">#</span>
 <span class="c">#     You should have received a copy of the GNU General Public License</span>
-<span class="c">#     along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">#     along with MVtest.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="k">class</span> <span class="nc">Locus</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <div class="viewcode-block" id="Locus"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.locus.Locus">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -92,10 +92,12 @@
     <span class="k">def</span> <span class="nf">flip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <div class="viewcode-block" id="Locus.flip"><a class="viewcode-back" href="../../modules/pygwas.html#pygwas.locus.Locus.flip">[docs]</a>        <span class="sd">&quot;&quot;&quot;This will switch major/minor around, regardless of frequency truth.</span>
 
-<span class="sd">        This is intended for forcing one of two populations to relate correctly to the same genotype definitions. When</span>
-<span class="sd">        flipped, Ps and Qs will be backward, and the maf will no longer relate to the &quot;minor&quot; allele frequency. However,</span>
-<span class="sd">        it does allow clients to use the same calls for each population without having to perform checks during</span>
-<span class="sd">        those calculations. &quot;&quot;&quot;</span>
+<span class="sd">        This is intended for forcing one of two populations to relate correctly</span>
+<span class="sd">        to the same genotype definitions. When flipped, Ps and Qs will be</span>
+<span class="sd">        backward, and the maf will no longer relate to the &quot;minor&quot; allele</span>
+<span class="sd">        frequency. However, it does allow clients to use the same calls for each</span>
+<span class="sd">        population without having to perform checks during those calculations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">maj_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span>
@@ -116,8 +118,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hetero_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the frequency of observed heterozygotes (not available with all parsers)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hetero_count</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span><span class="p">))</span>
+        <span class="sd">&quot;&quot;&quot;Returns the frequency of observed heterozygotes (not available with \</span>
+<span class="sd">        all parsers)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hetero_count</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_allele_count</span> <span class="o">+</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">maj_allele_count</span><span class="p">))</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">exp_hetero_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the estimated frequency of heterozygotes&quot;&quot;&quot;</span>
@@ -163,7 +167,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">chr</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="s">:</span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%0.4f</span><span class="s"> </span><span class="si">%0.4f</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hetero_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">genotype_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="s">:</span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%0.4f</span><span class="s"> </span><span class="si">%0.4f</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsid</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">major_allele</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">minor_allele</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">maf</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">hetero_freq</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">genotype_data</span><span class="p">)</span>
 </pre></div></div>
 
           </div>
