@@ -121,7 +121,7 @@ standard pedigree: fid, iid, fid, mid, sex, pheno)</p>
 <dl class="method">
 <dt id="pygwas.bed_parser.Parser.filter_missing">
 <code class="descname">filter_missing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/bed_parser.html#Parser.filter_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.bed_parser.Parser.filter_missing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filter out individuals and SNPs that have too many missing to be considered</p>
+<dd><p>Filter out individuals and SNPs that have too many missing to be             considered</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -298,7 +298,7 @@ by whitespace (tabs, spaces and return characters).</p>
 <dl class="method">
 <dt id="pygwas.boundary.BoundaryCheck.LoadSNPs">
 <code class="descname">LoadSNPs</code><span class="sig-paren">(</span><em>snps=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/boundary.html#BoundaryCheck.LoadSNPs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.boundary.BoundaryCheck.LoadSNPs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define the SNP inclusions (by RSID). This overrides true boundary definition.</p>
+<dd><p>Define the SNP inclusions (by RSID). This overrides true boundary             definition.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -529,7 +529,7 @@ compressed with gzip</p>
 <dl class="function">
 <dt id="pygwas.data_parser.check_inclusions">
 <code class="descclassname">pygwas.data_parser.</code><code class="descname">check_inclusions</code><span class="sig-paren">(</span><em>item</em>, <em>included=[]</em>, <em>excluded=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/data_parser.html#check_inclusions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.data_parser.check_inclusions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Everything passes if both are empty, otherwise, we have to check if empty or is present.</p>
+<dd><p>Everything passes if both are empty, otherwise, we have to check if     empty or is present.</p>
 </dd></dl>
 
 </div>
@@ -856,10 +856,11 @@ the valid genomic region for analysis.</p>
 <dt id="pygwas.locus.Locus.flip">
 <code class="descname">flip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pygwas/locus.html#Locus.flip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygwas.locus.Locus.flip" title="Permalink to this definition">¶</a></dt>
 <dd><p>This will switch major/minor around, regardless of frequency truth.</p>
-<p>This is intended for forcing one of two populations to relate correctly to the same genotype definitions. When
-flipped, Ps and Qs will be backward, and the maf will no longer relate to the &#8220;minor&#8221; allele frequency. However,
-it does allow clients to use the same calls for each population without having to perform checks during
-those calculations.</p>
+<p>This is intended for forcing one of two populations to relate correctly
+to the same genotype definitions. When flipped, Ps and Qs will be
+backward, and the maf will no longer relate to the &#8220;minor&#8221; allele
+frequency. However, it does allow clients to use the same calls for each
+population without having to perform checks during those calculations.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -871,7 +872,7 @@ those calculations.</p>
 <dl class="attribute">
 <dt id="pygwas.locus.Locus.hetero_freq">
 <code class="descname">hetero_freq</code><a class="headerlink" href="#pygwas.locus.Locus.hetero_freq" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the frequency of observed heterozygotes (not available with all parsers)</p>
+<dd><p>Returns the frequency of observed heterozygotes (not available with         all parsers)</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -973,23 +974,22 @@ into member before we can begin analyzing it. Due to the massive amount
 of data, SNPs are loaded in in chunks.</p>
 <dl class="docutils">
 <dt>ISSUES:</dt>
-<dd><ul class="first last">
-<li><p class="first">Currently, we will not be filtering on individuals except by explicit removal</p>
-</li>
-<li><dl class="first docutils">
-<dt>We are assuming that each gzip archive contains all data associated with the loci contained within (i.e. there won&#8217;t</dt>
-<dd><p class="first last">be separate files with different subjects inside) (( Todd email jan-9-2015))</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>There is no reason to process regions in any order. I&#8217;m thinking we&#8217;ll have a master file and then indices into that</dt>
-<dd><p class="first last">file and task count to facilitate &#8220;parallel&#8221; execution</p>
-</dd>
-</dl>
-</li>
-<li><p class="first">There is no place to store RSID from the output that I&#8217;ve seen (Minimac output generated by Ben Zhang)</p>
-</li>
+<dd><ul class="first last simple">
+<li>Currently, we will not be filtering on individuals except by explicit
+removal</li>
+<li>We are assuming that each gzip archive contains all data associated
+with the loci contained within (i.e. there won&#8217;t be separate files
+with different subjects inside) (( Todd email jan-9-2015))</li>
+<li>There is no place to store RSID from the output that I&#8217;ve seen
+(Minimac output generated by Ben Zhang). As of Feb 2016, I&#8217;ve made the
+chr:pos ID requirment optional, and added in a 3rd column (optional
+for even the option) which can be rsid if present (currently, the
+data we have puts alleles in that column, but future imputations can
+be done differently). When using the mach-chrpos flag, users can
+produce results that appear similar to plink output with chromosome,
+position and optionally RSIDs in the expected columns. This is, by
+default, turned off, and the entire contents of that ID column is
+stored as simply the RSID when reporting results.</li>
 </ul>
 </dd>
 </dl>
@@ -1008,6 +1008,11 @@ of data, SNPs are loaded in in chunks.</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="pygwas.mach_parser.Parser.chrpos_encoding">
+<code class="descname">chrpos_encoding</code><em class="property"> = False</em><a class="headerlink" href="#pygwas.mach_parser.Parser.chrpos_encoding" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pygwas.mach_parser.Parser.chunk_stride">
