@@ -53,7 +53,7 @@ import pdb
 
 __version__ = version.__version__
 
-ExitIf("mvtest.py requires python 3.x  to run", sys.version_info < (3))
+ExitIf("mvtest.py requires python 3.x  to run", sys.version_info < (3,))
 
 libgwas.standardizer.set_standardizer(meanvar.mvstandardizer.Standardizer)
 
