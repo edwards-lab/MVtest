@@ -5,8 +5,18 @@ MVtest is an analysis tool that can be run on many common file formats using
 syntax similar to programs you've probably already used. Instructions for
 installation can be found below.
 
+MVtest dependencies are currently incompatible with Python 3.12
+===============================================================
+
+As of May 2024, we have been made aware that a dependency of a library we rely on
+for parsing bgen data has a dependency of its own which uses a deprecated feature
+that makes it incompatible with Python 3.12 (and greater). Until this has been 
+fixed, MVtest can only be installed on systems that run on Python 3.10 (or earlier
+until 3.7). 
+
 Installation
 ============
+
 MVtest requires python 3.7.x as well as the following libraries:
 
 * NumPy (version 1.16.2 or later)           www.numpy.org
